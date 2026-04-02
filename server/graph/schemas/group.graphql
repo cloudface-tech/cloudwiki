@@ -24,6 +24,7 @@ extend type Mutation {
     redirectOnLogin: String!
     permissions: [String]!
     rules: [GroupRuleInput]!
+    managedGroups: [UUID]
   ): DefaultResponse
 
   deleteGroup(
@@ -59,6 +60,7 @@ type Group {
   redirectOnLogout: String
   permissions: [String]
   rules: [GroupRule]
+  managedGroups: [UUID]
   users(
     page: Int
     pageSize: Int

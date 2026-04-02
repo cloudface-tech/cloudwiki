@@ -119,6 +119,20 @@ q-layout(view='hHh lpR fFf', container)
                     :aria-label='t(`admin.groups.redirectOnLogout`)'
                     )
 
+          .col-12.col-lg-8(v-if='!isGuestGroup')
+            q-card.shadow-1.q-pb-sm.q-mt-md
+              q-card-section
+                .text-subtitle1 Managed Groups
+                .text-caption.text-grey Members of this group can manage users in the selected groups below.
+              q-card-section
+                q-option-group(
+                  v-model='state.group.managedGroups'
+                  :options='availableGroupsForManagement'
+                  type='checkbox'
+                  color='primary'
+                )
+                .text-caption.text-grey-7.q-mt-sm(v-if='!availableGroupsForManagement.length') No other groups available.
+
           .col-12.col-lg-4
             q-card.shadow-1.q-pb-sm
               q-card-section
@@ -539,10 +553,12 @@ const { t } = useI18n()
 
 const state = reactive({
   group: {
-    rules: []
+    rules: [],
+    managedGroups: []
   },
   isLoading: false,
   users: [],
+  allGroups: [],
   isLoadingUsers: false,
   usersFilter: '',
   usersPage: 1,
@@ -787,6 +803,12 @@ const isGuestGroup = computed(() => {
   return adminStore.overlayOpts.id === '10000000-0000-4000-8000-000000000001'
 })
 
+const availableGroupsForManagement = computed(() => {
+  return state.allGroups
+    .filter(g => g.id !== state.group.id && g.name !== 'Guests')
+    .map(g => ({ label: g.name, value: g.id }))
+})
+
 // WATCHERS
 
 watch(() => route.params.section, checkRoute)
@@ -805,6 +827,7 @@ async function saveGroup () {
           $redirectOnLogin: String!
           $permissions: [String]!
           $rules: [GroupRuleInput]!
+          $managedGroups: [UUID]
         ) {
           updateGroup(
             id: $id
@@ -812,6 +835,7 @@ async function saveGroup () {
             redirectOnLogin: $redirectOnLogin
             permissions: $permissions
             rules: $rules
+            managedGroups: $managedGroups
           ) {
             operation {
               succeeded
@@ -834,7 +858,8 @@ async function saveGroup () {
           mode: r.mode || 'ALLOW',
           locales: r.locales || [],
           sites: r.sites || []
-        }))
+        })),
+        managedGroups: state.group.managedGroups || []
       }
     })
     const result = resp?.data?.updateGroup?.operation ?? {}
@@ -943,6 +968,7 @@ async function fetchGroup () {
               locales
               sites
             }
+            managedGroups
             userCount
             createdAt
             updatedAt
@@ -954,8 +980,16 @@ async function fetchGroup () {
       },
       fetchPolicy: 'network-only'
     })
+    // Fetch all groups for the managedGroups selector
+    const grpResp = await APOLLO_CLIENT.query({
+      query: gql`{ groups { id name } }`,
+      fetchPolicy: 'network-only'
+    })
+    state.allGroups = grpResp?.data?.groups || []
+
     if (resp?.data?.groupById) {
       state.group = cloneDeep(resp.data.groupById)
+      if (!state.group.managedGroups) state.group.managedGroups = []
       state.usersTotal = state.group.userCount ?? 0
     } else {
       throw new Error('An unexpected error occured while fetching group details.')

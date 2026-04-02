@@ -32,7 +32,17 @@ export default {
      * ASSIGN USER TO GROUP
      */
     async assignUserToGroup (obj, args, { req }) {
-      if (!WIKI.auth.checkAccess(req.user, ['manage:groups', 'manage:users', 'manage:system'])) {
+      const hasFullAccess = WIKI.auth.checkAccess(req.user, ['manage:groups', 'manage:users', 'manage:system'])
+
+      // Check if user can manage this specific group via managedGroups
+      let hasManagedAccess = false
+      if (!hasFullAccess && req.user.groups) {
+        const userGroupIds = req.user.groups.map(g => typeof g === 'object' ? g.id : g)
+        const userGroups = await WIKI.db.groups.query().whereIn('id', userGroupIds)
+        hasManagedAccess = userGroups.some(g => (g.managedGroups || []).includes(args.groupId))
+      }
+
+      if (!hasFullAccess && !hasManagedAccess) {
         throw new Error('ERR_FORBIDDEN')
       }
 
@@ -136,7 +146,16 @@ export default {
      * UNASSIGN USER FROM GROUP
      */
     async unassignUserFromGroup (obj, args, { req }) {
-      if (!WIKI.auth.checkAccess(req.user, ['manage:groups', 'manage:users', 'manage:system'])) {
+      const hasFullAccess = WIKI.auth.checkAccess(req.user, ['manage:groups', 'manage:users', 'manage:system'])
+
+      let hasManagedAccess = false
+      if (!hasFullAccess && req.user.groups) {
+        const userGroupIds = req.user.groups.map(g => typeof g === 'object' ? g.id : g)
+        const userGroups = await WIKI.db.groups.query().whereIn('id', userGroupIds)
+        hasManagedAccess = userGroups.some(g => (g.managedGroups || []).includes(args.groupId))
+      }
+
+      if (!hasFullAccess && !hasManagedAccess) {
         throw new Error('ERR_FORBIDDEN')
       }
 
@@ -203,12 +222,16 @@ export default {
       }
 
       // Update group
-      await WIKI.db.groups.query().patch({
+      const patch = {
         name: args.name,
         redirectOnLogin: args.redirectOnLogin,
         permissions: JSON.stringify(args.permissions),
         pageRules: JSON.stringify(args.pageRules)
-      }).where('id', args.id)
+      }
+      if (args.managedGroups !== undefined) {
+        patch.managedGroups = JSON.stringify(args.managedGroups || [])
+      }
+      await WIKI.db.groups.query().patch(patch).where('id', args.id)
 
       // Revoke tokens for this group
       WIKI.auth.revokeUserTokens({ id: args.id, kind: 'g' })
