@@ -9,21 +9,47 @@ export default {
      * FETCH ALL GROUPS
      */
     async groups (obj, args, context) {
-      if (!WIKI.auth.checkAccess(context.req.user, ['manage:groups', 'manage:users', 'manage:system'])) {
+      const hasFullAccess = WIKI.auth.checkAccess(context.req.user, ['manage:groups', 'manage:users', 'manage:system'])
+
+      // Check for delegated access via managedGroups
+      let managedGroupIds = []
+      if (!hasFullAccess && context.req.user.groups) {
+        const userGroupIds = context.req.user.groups.map(g => typeof g === 'object' ? g.id : g)
+        const userGroups = await WIKI.db.groups.query().whereIn('id', userGroupIds)
+        managedGroupIds = _.uniq(_.flatten(userGroups.map(g => g.managedGroups || [])))
+      }
+
+      if (!hasFullAccess && managedGroupIds.length === 0) {
         throw new Error('ERR_FORBIDDEN')
       }
-      return WIKI.db.groups.query().select(
+
+      let query = WIKI.db.groups.query().select(
         'groups.*',
         WIKI.db.groups.relatedQuery('users').count().as('userCount')
       )
+
+      // Non-admins only see groups they can manage
+      if (!hasFullAccess) {
+        query = query.whereIn('id', managedGroupIds)
+      }
+
+      return query
     },
     /**
      * FETCH A SINGLE GROUP
      */
     async groupById(obj, args, context) {
-      if (!WIKI.auth.checkAccess(context.req.user, ['manage:groups', 'manage:users', 'manage:system'])) {
-        throw new Error('ERR_FORBIDDEN')
+      const hasFullAccess = WIKI.auth.checkAccess(context.req.user, ['manage:groups', 'manage:users', 'manage:system'])
+
+      if (!hasFullAccess) {
+        const userGroupIds = (context.req.user.groups || []).map(g => typeof g === 'object' ? g.id : g)
+        const userGroups = await WIKI.db.groups.query().whereIn('id', userGroupIds)
+        const managedGroupIds = _.uniq(_.flatten(userGroups.map(g => g.managedGroups || [])))
+        if (!managedGroupIds.includes(args.id)) {
+          throw new Error('ERR_FORBIDDEN')
+        }
       }
+
       return WIKI.db.groups.query().findById(args.id)
     }
   },
