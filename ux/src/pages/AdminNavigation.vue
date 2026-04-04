@@ -36,300 +36,320 @@ q-page.admin-navigation
       )
   q-separator(inset)
   .row.q-pa-md.q-col-gutter-md
-    .col-auto
-      q-card.q-mt-sm {{t('admin.navigation.mode')}}
-
-      q-card.bg-dark.q-mt-sm
-        q-list(
-          style='min-width: 350px;'
-          padding
-          dark
-          )
-          q-item
-            q-item-section
-              q-select(
-                dark
-                outlined
-                option-value='value'
-                option-label='text'
-                emit-value
-                map-options
-                dense
-                options-dense
-                :label='t(`admin.navigation.mode`)'
-                :aria-label='t(`admin.navigation.mode`)'
+    //- Left column: item list
+    .col-12.col-md-5.col-lg-4
+      q-card.bg-dark
+        q-card-section.q-pb-none
+          .text-subtitle2.text-white {{ t('admin.navigation.items') || 'Menu Items' }}
+        q-scroll-area(style='height: calc(100vh - 280px);')
+          sortable(
+            class='q-list q-list--dense q-list--dark nav-edit-list'
+            :list='state.items'
+            item-key='id'
+            :options='sortableOptions'
+            @end='updateItemPosition'
+            )
+            template(#item='{element}')
+              .nav-edit-item.nav-edit-item-header(
+                v-if='element.type === `header`'
+                :class='state.selected === element.id ? `is-active` : ``'
+                @click='setItem(element)'
                 )
+                q-item-label.text-caption(header) {{ element.label }}
+                q-space
+                q-item-section(side)
+                  q-icon.handle(name='mdi-drag-horizontal', size='sm')
+              q-item.nav-edit-item.nav-edit-item-link(
+                v-else-if='element.type === `link`'
+                :class='{ "is-active": state.selected === element.id, "is-nested": element.isNested }'
+                @click='setItem(element)'
+                clickable
+                )
+                q-item-section(side)
+                  q-icon(:name='element.icon', color='white')
+                q-item-section.text-wordbreak-all {{ element.label }}
+                q-item-section(side)
+                  q-icon.handle(name='mdi-drag-horizontal', size='sm')
+              .nav-edit-item.nav-edit-item-separator(
+                v-else
+                :class='state.selected === element.id ? `is-active` : ``'
+                @click='setItem(element)'
+                )
+                q-separator(dark, inset, style='flex: 1; margin-top: 11px;')
+                q-item-section(side)
+                  q-icon.handle(name='mdi-drag-horizontal', size='sm')
+        q-card-section
+          q-btn.full-width(
+            flat
+            color='positive'
+            :label='t(`common.actions.add`)'
+            icon='las la-plus-circle'
+            )
+            q-menu(fit, :offset='[0, 10]', auto-close)
+              q-list(separator)
+                q-item(clickable, @click='addItem(`header`)')
+                  q-item-section(side)
+                    q-icon(name='las la-heading')
+                  q-item-section
+                    q-item-label {{ t('admin.navigation.header') || 'Header' }}
+                q-item(clickable, @click='addItem(`link`)')
+                  q-item-section(side)
+                    q-icon(name='las la-link')
+                  q-item-section
+                    q-item-label {{ t('admin.navigation.link') || 'Link' }}
+                q-item(clickable, @click='addItem(`separator`)')
+                  q-item-section(side)
+                    q-icon(name='las la-minus')
+                  q-item-section
+                    q-item-label {{ t('admin.navigation.separator') || 'Separator' }}
 
-//-       v-container.pa-0.mt-3(fluid, grid-list-lg)
-//-         v-row(dense)
-//-           v-col(cols='3')
-//-             v-card.animated.fadeInUp
-//-               v-toolbar(color='teal', dark, dense, flat, height='56')
-//-                 v-toolbar-title.subtitle-1 {{$t('admin.navigation.mode')}}
-//-               v-list(nav, two-line)
-//-                 v-list-item-group(v-model='config.mode', mandatory, :color='$vuetify.theme.dark ? `teal lighten-3` : `teal`')
-//-                   v-list-item(value='TREE')
-//-                     v-list-item-avatar
-//-                       img(src='/_assets/svg/icon-tree-structure-dotted.svg', alt='Site Tree')
-//-                     v-list-item-content
-//-                       v-list-item-title {{$t('admin.navigation.modeSiteTree.title')}}
-//-                       v-list-item-subtitle {{$t('admin.navigation.modeSiteTree.description')}}
-//-                     v-list-item-avatar
-//-                       v-icon(v-if='$vuetify.theme.dark', :color='config.mode === `TREE` ? `teal lighten-3` : `grey darken-2`') mdi-check-circle
-//-                       v-icon(v-else, :color='config.mode === `TREE` ? `teal` : `grey lighten-3`') mdi-check-circle
-//-                   v-list-item(value='STATIC')
-//-                     v-list-item-avatar
-//-                       img(src='/_assets/svg/icon-features-list.svg', alt='Static Navigation')
-//-                     v-list-item-content
-//-                       v-list-item-title {{$t('admin.navigation.modeStatic.title')}}
-//-                       v-list-item-subtitle {{$t('admin.navigation.modeStatic.description')}}
-//-                     v-list-item-avatar
-//-                       v-icon(v-if='$vuetify.theme.dark', :color='config.mode === `STATIC` ? `teal lighten-3` : `grey darken-2`') mdi-check-circle
-//-                       v-icon(v-else, :color='config.mode === `STATIC` ? `teal` : `grey lighten-3`') mdi-check-circle
-//-                   v-list-item(value='MIXED')
-//-                     v-list-item-avatar
-//-                       img(src='/_assets/svg/icon-user-menu-male-dotted.svg', alt='Custom Navigation')
-//-                     v-list-item-content
-//-                       v-list-item-title {{$t('admin.navigation.modeCustom.title')}}
-//-                       v-list-item-subtitle {{$t('admin.navigation.modeCustom.description')}}
-//-                     v-list-item-avatar
-//-                       v-icon(v-if='$vuetify.theme.dark', :color='config.mode === `MIXED` ? `teal lighten-3` : `grey darken-2`') mdi-check-circle
-//-                       v-icon(v-else, :color='config.mode === `MIXED` ? `teal` : `grey lighten-3`') mdi-check-circle
-//-                   v-list-item(value='NONE')
-//-                     v-list-item-avatar
-//-                       img(src='/_assets/svg/icon-cancel-dotted.svg', alt='None')
-//-                     v-list-item-content
-//-                       v-list-item-title {{$t('admin.navigation.modeNone.title')}}
-//-                       v-list-item-subtitle {{$t('admin.navigation.modeNone.description')}}
-//-                     v-list-item-avatar
-//-                       v-icon(v-if='$vuetify.theme.dark', :color='config.mode === `none` ? `teal lighten-3` : `grey darken-2`') mdi-check-circle
-//-                       v-icon(v-else, :color='config.mode === `none` ? `teal` : `grey lighten-3`') mdi-check-circle
-//-           v-col(cols='9', v-if='config.mode === `MIXED` || config.mode === `STATIC`')
-//-             v-card.animated.fadeInUp.wait-p2s
-//-               v-row(no-gutters, align='stretch')
-//-                 v-col(style='flex: 0 0 350px;')
-//-                   v-card.grey(flat, style='height: 100%; border-radius: 4px 0 0 4px;', :class='$vuetify.theme.dark ? `darken-4-l5` : `lighten-3`')
-//-                     .teal.lighten-1.pa-2.d-flex(style='margin-bottom: 1px; height:56px;')
-//-                       v-select(
-//-                         :disabled='locales.length < 2'
-//-                         label='Locale'
-//-                         hide-details
-//-                         solo
-//-                         flat
-//-                         background-color='teal darken-2'
-//-                         dark
-//-                         dense
-//-                         v-model='currentLang'
-//-                         :items='locales'
-//-                         item-text='nativeName'
-//-                         item-value='code'
-//-                       )
-//-                       v-tooltip(top)
-//-                         template(v-slot:activator='{ on }')
-//-                           v-btn.ml-2(icon, tile, color='white', v-on='on', @click='copyFromLocaleDialogIsShown = true')
-//-                             v-icon mdi-arrange-send-backward
-//-                         span {{$t('admin.navigation.copyFromLocale')}}
-//-                     v-list.py-2(dense, nav, dark, class='blue darken-2', style='border-radius: 0;')
-//-                       v-list-item(v-if='currentTree.length < 1')
-//-                         v-list-item-avatar(size='24'): v-icon(color='blue lighten-3') mdi-alert
-//-                         v-list-item-content
-//-                           em.caption.blue--text.text--lighten-4 {{$t('navigation.emptyList')}}
-//-                       draggable(v-model='currentTree')
-//-                         template(v-for='navItem in currentTree')
-//-                           v-list-item(
-//-                             v-if='navItem.kind === "link"'
-//-                             :key='navItem.id'
-//-                             :class='(navItem === current) ? "blue" : ""'
-//-                             @click='selectItem(navItem)'
-//-                             )
-//-                             v-list-item-avatar(size='24', tile)
-//-                               v-icon(v-if='navItem.icon.match(/fa[a-z] fa-/)', size='19') {{ navItem.icon }}
-//-                               v-icon(v-else) {{ navItem.icon }}
-//-                             v-list-item-title {{navItem.label}}
-//-                           .py-2.clickable(
-//-                             v-else-if='navItem.kind === "divider"'
-//-                             :key='navItem.id'
-//-                             :class='(navItem === current) ? "blue" : ""'
-//-                             @click='selectItem(navItem)'
-//-                             )
-//-                             v-divider
-//-                           v-subheader.pl-4.clickable(
-//-                             v-else-if='navItem.kind === "header"'
-//-                             :key='navItem.id'
-//-                             :class='(navItem === current) ? "blue" : ""'
-//-                             @click='selectItem(navItem)'
-//-                             ) {{navItem.label}}
-//-                     v-card-chin
-//-                       v-menu(offset-y, bottom, min-width='200px', style='flex: 1 1;')
-//-                         template(v-slot:activator='{ on }')
-//-                           v-btn(v-on='on', color='primary', depressed, block)
-//-                             v-icon(left) mdi-plus
-//-                             span {{$t('common.actions.add')}}
-//-                         v-list
-//-                           v-list-item(@click='addItem("link")')
-//-                             v-list-item-avatar(size='24'): v-icon mdi-link
-//-                             v-list-item-title {{$t('navigation.link')}}
-//-                           v-list-item(@click='addItem("header")')
-//-                             v-list-item-avatar(size='24'): v-icon mdi-format-title
-//-                             v-list-item-title {{$t('navigation.header')}}
-//-                           v-list-item(@click='addItem("divider")')
-//-                             v-list-item-avatar(size='24'): v-icon mdi-minus
-//-                             v-list-item-title {{$t('navigation.divider')}}
-//-                 v-col
-//-                   v-card(flat, style='border-radius: 0 4px 4px 0;')
-//-                     template(v-if='current.kind === "link"')
-//-                       v-toolbar(height='56', color='teal lighten-1', flat, dark)
-//-                         .subtitle-1 {{$t('navigation.edit', { kind: $t('navigation.link') })}}
-//-                         v-spacer
-//-                         v-btn.px-5(color='white', outlined, @click='deleteItem(current)')
-//-                           v-icon(left) mdi-delete
-//-                           span {{$t('navigation.delete', { kind: $t('navigation.link') })}}
-//-                       v-card-text
-//-                         v-text-field(
-//-                           outlined
-//-                           :label='$t("navigation.label")'
-//-                           prepend-icon='mdi-format-title'
-//-                           v-model='current.label'
-//-                           counter='255'
-//-                         )
-//-                         v-text-field(
-//-                           outlined
-//-                           :label='$t("navigation.icon")'
-//-                           prepend-icon='mdi-dice-5'
-//-                           v-model='current.icon'
-//-                           hide-details
-//-                         )
-//-                         .caption.pt-3.pl-5 The default icon set is #[strong Material Design Icons]. In order to use another icon set, you must first select it in the Theme administration section.
-//-                         .caption.pt-3.pl-5: strong Material Design Icons
-//-                         .caption.pl-5 Refer to the #[a(href='https://materialdesignicons.com/', target='_blank') Material Design Icons Reference] for the list of all possible values. You must prefix all values with #[code mdi-], e.g. #[code mdi-home]
-//-                         .caption.pt-3.pl-5: strong Font Awesome 5
-//-                         .caption.pl-5 Refer to the #[a(href='https://fontawesome.com/icons?d=gallery&m=free', target='_blank') Font Awesome 5 Reference] for the list of all possible values. You must prefix all values with #[code fas fa-], e.g. #[code fas fa-home]. Note that some icons use different prefixes (e.g. #[code fab], #[code fad], #[code fal], #[code far]).
-//-                         .caption.pt-3.pl-5: strong Font Awesome 4
-//-                         .caption.pl-5 Refer to the #[a(href='https://fontawesome.com/v4.7.0/icons/', target='_blank') Font Awesome 4 Reference] for the list of all possible values. You must prefix all values with #[code fa fa-], e.g. #[code fa fa-home]
-//-                       v-divider
-//-                       v-card-text
-//-                         v-select(
-//-                           outlined
-//-                           :label='$t("navigation.targetType")'
-//-                           prepend-icon='mdi-near-me'
-//-                           :items='navTypes'
-//-                           v-model='current.targetType'
-//-                           hide-details
-//-                         )
-//-                         v-text-field.mt-4(
-//-                           v-if='current.targetType === `external` || current.targetType === `externalblank`'
-//-                           outlined
-//-                           :label='$t("navigation.target")'
-//-                           prepend-icon='mdi-near-me'
-//-                           v-model='current.target'
-//-                           hide-details
-//-                         )
-//-                         .d-flex.align-center.mt-4(v-else-if='current.targetType === "page"')
-//-                           v-btn.ml-8(
-//-                             color='primary'
-//-                             dark
-//-                             @click='selectPage'
-//-                             )
-//-                             v-icon(left) mdi-magnify
-//-                             span {{$t('admin.navigation.selectPageButton')}}
-//-                           .caption.ml-4.primary--text {{current.target}}
-//-                         v-text-field(
-//-                           v-else-if='current.targetType === `search`'
-//-                           outlined
-//-                           :label='$t("navigation.navType.searchQuery")'
-//-                           prepend-icon='search'
-//-                           v-model='current.target'
-//-                         )
-//-                       v-divider
+    //- Right column: item editor
+    .col-12.col-md-7.col-lg-8
+      template(v-if='state.items.length < 1')
+        q-card.q-pa-lg.text-center
+          q-icon(name='las la-arrow-left', size='md', color='grey')
+          .text-grey.q-mt-sm {{ t('admin.navigation.emptyList') || 'No menu items yet. Click Add to create one.' }}
 
-//-                     template(v-else-if='current.kind === "header"')
-//-                       v-toolbar(height='56', color='teal lighten-1', flat, dark)
-//-                         .subtitle-1 {{$t('navigation.edit', { kind: $t('navigation.header') })}}
-//-                         v-spacer
-//-                         v-btn.px-5(color='white', outlined, @click='deleteItem(current)')
-//-                           v-icon(left) mdi-delete
-//-                           span {{$t('navigation.delete', { kind: $t('navigation.header') })}}
-//-                       v-card-text
-//-                         v-text-field(
-//-                           outlined
-//-                           :label='$t("navigation.label")'
-//-                           prepend-icon='mdi-format-title'
-//-                           v-model='current.label'
-//-                         )
-//-                       v-divider
+      template(v-else-if='!state.selected')
+        q-card.q-pa-lg.text-center
+          q-icon(name='las la-mouse-pointer', size='md', color='grey')
+          .text-grey.q-mt-sm {{ t('admin.navigation.noSelection') || 'Select an item from the list to edit it.' }}
 
-//-                     div(v-else-if='current.kind === "divider"')
-//-                       v-toolbar(height='56', color='teal lighten-1', flat, dark)
-//-                         .subtitle-1 {{$t('navigation.edit', { kind: $t('navigation.divider') })}}
-//-                         v-spacer
-//-                         v-btn.px-5(color='white', outlined, @click='deleteItem(current)')
-//-                           v-icon(left) mdi-delete
-//-                           span {{$t('navigation.delete', { kind: $t('navigation.divider') })}}
+      //- Header editor
+      template(v-if='state.current.type === `header`')
+        q-card.q-pb-sm
+          q-card-section
+            .text-subtitle1 {{ t('admin.navigation.header') || 'Header' }}
+          q-item
+            q-item-section(side)
+              q-icon(name='las la-heading', color='grey')
+            q-item-section
+              q-item-label Label
+            q-item-section
+              q-input(
+                outlined
+                v-model='state.current.label'
+                dense
+                hide-bottom-space
+                )
+          q-item
+            q-item-section(side)
+              q-icon(name='las la-users', color='grey')
+            q-item-section
+              q-item-label Visibility
+            q-item-section(avatar)
+              q-btn-toggle(
+                v-model='state.current.visibilityLimited'
+                push
+                glossy
+                no-caps
+                toggle-color='primary'
+                :options='visibilityOptions'
+              )
+          q-item.items-center(v-if='state.current.visibilityLimited')
+            q-space
+            q-select(
+              style='width: 100%; max-width: calc(50% - 34px);'
+              outlined
+              v-model='state.current.visibilityGroups'
+              :options='state.groups'
+              option-value='id'
+              option-label='name'
+              emit-value
+              map-options
+              dense
+              multiple
+              label='Groups'
+              )
+        q-card.q-pa-md.q-mt-md.flex
+          q-space
+          q-btn.acrylic-btn(
+            flat
+            icon='las la-trash-alt'
+            :label='t(`common.actions.delete`)'
+            color='negative'
+            padding='xs md'
+            @click='removeItem(state.current.id)'
+          )
 
-//-                     v-card-text(v-if='current.kind')
-//-                       v-radio-group.pl-8(v-model='current.visibilityMode', mandatory, hide-details)
-//-                         v-radio(:label='$t("admin.navigation.visibilityMode.all")', value='all', color='primary')
-//-                         v-radio.mt-3(:label='$t("admin.navigation.visibilityMode.restricted")', value='restricted', color='primary')
-//-                       .pl-8
-//-                         v-select.pl-8.mt-3(
-//-                           item-text='name'
-//-                           item-value='id'
-//-                           outlined
-//-                           prepend-icon='mdi-account-group'
-//-                           label='Groups'
-//-                           :disabled='current.visibilityMode !== `restricted`'
-//-                           v-model='current.visibilityGroups'
-//-                           :items='groups'
-//-                           persistent-hint
-//-                           clearable
-//-                           multiple
-//-                         )
-//-                     template(v-else)
-//-                       v-toolbar(height='56', color='teal lighten-1', flat, dark)
-//-                       v-card-text.grey--text(v-if='currentTree.length > 0') {{$t('navigation.noSelectionText')}}
-//-                       v-card-text.grey--text(v-else) {{$t('navigation.noItemsText')}}
+      //- Link editor
+      template(v-if='state.current.type === `link`')
+        q-card.q-pb-sm
+          q-card-section
+            .text-subtitle1 {{ t('admin.navigation.link') || 'Link' }}
+          q-item
+            q-item-section(side)
+              q-icon(name='las la-heading', color='grey')
+            q-item-section
+              q-item-label Label
+            q-item-section
+              q-input(
+                outlined
+                v-model='state.current.label'
+                dense
+                hide-bottom-space
+                )
+          q-separator.q-my-sm(inset)
+          q-item
+            q-item-section(side)
+              q-icon(name='las la-icons', color='grey')
+            q-item-section
+              q-item-label Icon
+              q-item-label(caption) Material Design Icons (mdi-*) or Line Awesome (las la-*)
+            q-item-section
+              q-input(
+                outlined
+                v-model='state.current.icon'
+                dense
+                )
+          q-separator.q-my-sm(inset)
+          q-item
+            q-item-section(side)
+              q-icon(name='las la-link', color='grey')
+            q-item-section
+              q-item-label Target
+              q-item-label(caption) Path or URL (e.g. /docs or https://...)
+            q-item-section
+              q-input(
+                outlined
+                v-model='state.current.target'
+                dense
+                hide-bottom-space
+                )
+          q-separator.q-my-sm(inset)
+          q-item(tag='label')
+            q-item-section(side)
+              q-icon(name='las la-external-link-alt', color='grey')
+            q-item-section
+              q-item-label Open in new window
+            q-item-section(avatar)
+              q-toggle(
+                v-model='state.current.openInNewWindow'
+                color='primary'
+                checked-icon='las la-check'
+                unchecked-icon='las la-times'
+                )
+          q-separator.q-my-sm(inset)
+          q-item
+            q-item-section(side)
+              q-icon(name='las la-users', color='grey')
+            q-item-section
+              q-item-label Visibility
+            q-item-section(avatar)
+              q-btn-toggle(
+                v-model='state.current.visibilityLimited'
+                push
+                glossy
+                no-caps
+                toggle-color='primary'
+                :options='visibilityOptions'
+              )
+          q-item.items-center(v-if='state.current.visibilityLimited')
+            q-space
+            q-select(
+              style='width: 100%; max-width: calc(50% - 34px);'
+              outlined
+              v-model='state.current.visibilityGroups'
+              :options='state.groups'
+              option-value='id'
+              option-label='name'
+              emit-value
+              map-options
+              dense
+              multiple
+              label='Groups'
+              )
+        q-card.q-pa-md.q-mt-md.flex.items-start
+          div
+            q-btn.acrylic-btn(
+              v-if='state.current.isNested'
+              flat
+              label='Unnest item'
+              icon='mdi-format-indent-decrease'
+              color='teal'
+              padding='xs md'
+              @click='state.current.isNested = false'
+            )
+            q-btn.acrylic-btn(
+              v-else
+              flat
+              label='Nest under previous link'
+              icon='mdi-format-indent-increase'
+              color='teal'
+              padding='xs md'
+              @click='state.current.isNested = true'
+            )
+          q-space
+          q-btn.acrylic-btn(
+            flat
+            icon='las la-trash-alt'
+            :label='t(`common.actions.delete`)'
+            color='negative'
+            padding='xs md'
+            @click='removeItem(state.current.id)'
+          )
 
-//-   v-dialog(v-model='copyFromLocaleDialogIsShown', max-width='650', persistent)
-//-     v-card
-//-       .dialog-header.is-short.is-teal
-//-         v-icon.mr-3(color='white') mdi-arrange-send-backward
-//-         span {{$t('admin.navigation.copyFromLocale')}}
-//-       v-card-text.pt-5
-//-         .body-2 {{$t('admin.navigation.copyFromLocaleInfoText')}}
-//-         v-select.mt-3(
-//-           :items='locales'
-//-           item-text='nativeName'
-//-           item-value='code'
-//-           outlined
-//-           prepend-icon='mdi-web'
-//-           v-model='copyFromLocaleCode'
-//-           :label='$t(`admin.navigation.sourceLocale`)'
-//-           :hint='$t(`admin.navigation.sourceLocaleHint`)'
-//-           persistent-hint
-//-           )
-//-       v-card-chin
-//-         v-spacer
-//-         v-btn(text, @click='copyFromLocaleDialogIsShown = false') {{$t('common.actions.cancel')}}
-//-         v-btn.px-3(depressed, color='primary', @click='copyFromLocale')
-//-           v-icon(left) mdi-chevron-right
-//-           span {{$t('common.actions.copy')}}
-
-//-   page-selector(mode='select', v-model='selectPageModal', :open-handler='selectPageHandle', path='home', :locale='currentLang')
+      //- Separator editor
+      template(v-if='state.current.type === `separator`')
+        q-card.q-pb-sm
+          q-card-section
+            .text-subtitle1 {{ t('admin.navigation.separator') || 'Separator' }}
+          q-item
+            q-item-section(side)
+              q-icon(name='las la-users', color='grey')
+            q-item-section
+              q-item-label Visibility
+            q-item-section(avatar)
+              q-btn-toggle(
+                v-model='state.current.visibilityLimited'
+                push
+                glossy
+                no-caps
+                toggle-color='primary'
+                :options='visibilityOptions'
+              )
+          q-item.items-center(v-if='state.current.visibilityLimited')
+            q-space
+            q-select(
+              style='width: 100%; max-width: calc(50% - 34px);'
+              outlined
+              v-model='state.current.visibilityGroups'
+              :options='state.groups'
+              option-value='id'
+              option-label='name'
+              emit-value
+              map-options
+              dense
+              multiple
+              label='Groups'
+              )
+        q-card.q-pa-md.q-mt-md.flex
+          q-space
+          q-btn.acrylic-btn(
+            flat
+            icon='las la-trash-alt'
+            :label='t(`common.actions.delete`)'
+            color='negative'
+            padding='xs md'
+            @click='removeItem(state.current.id)'
+          )
 </template>
 
 <script setup>
 import gql from 'graphql-tag'
-import { find, intersectionBy, pull, unionBy } from 'lodash-es'
+import { cloneDeep, last, pick } from 'lodash-es'
 import { v4 as uuid } from 'uuid'
 
 import { useI18n } from 'vue-i18n'
 import { useMeta, useQuasar } from 'quasar'
-import { computed, onMounted, reactive, watch, nextTick } from 'vue'
+import { onMounted, reactive } from 'vue'
 
 import { useAdminStore } from '@/stores/admin'
 import { useSiteStore } from '@/stores/site'
 
-import draggable from 'vuedraggable'
+import { Sortable } from 'sortablejs-vue3'
+
+/* global APOLLO_CLIENT */
 
 // QUASAR
 
@@ -352,268 +372,263 @@ useMeta({
 
 // DATA
 
-const siteConfig = { lang: 'en' }
-const siteLangs = [{ code: 'en' }]
-
 const state = reactive({
   loading: 0,
-  selectPageModal: false,
-  trees: [],
+  selected: null,
+  items: [],
   current: {},
-  currentLang: siteConfig.lang,
-  groups: [],
-  copyFromLocaleDialogIsShown: false,
-  config: {
-    mode: 'NONE'
-  },
-  allLocales: [],
-  copyFromLocaleCode: 'en'
+  groups: []
 })
 
-// COMPUTED
+const sortableOptions = {
+  handle: '.handle',
+  animation: 150
+}
 
-const navTypes = computed(() => ([
-  { text: t('navigation.navType.external'), value: 'external' },
-  { text: t('navigation.navType.externalblank'), value: 'externalblank' },
-  { text: t('navigation.navType.home'), value: 'home' },
-  { text: t('navigation.navType.page'), value: 'page' }
-  // { text: t('navigation.navType.searchQuery'), value: 'search' }
-]))
-
-const locales = computed(() => {
-  return intersectionBy(state.allLocales, unionBy(siteLangs, [{ code: 'en' }, { code: siteConfig.lang }], 'code'), 'code')
-})
-
-const currentTree = computed({
-  get () {
-    return find(state.trees, ['locale', state.currentLang])?.items || []
-  },
-  set (val) {
-    const tree = find(state.trees, ['locale', state.currentLang])
-    if (tree) {
-      tree.items = val
-    } else {
-      state.trees = [...state.trees, {
-        locale: state.currentLang,
-        items: val
-      }]
-    }
-  }
-})
-
-// WATCHERS
-
-watch(() => state.currentLang, (newValue, oldValue) => {
-  nextTick(() => {
-    if (state.currentTree.length > 0) {
-      state.current = state.currentTree[0]
-    } else {
-      state.current = {}
-    }
-  })
-})
+const visibilityOptions = [
+  { value: false, label: 'All' },
+  { value: true, label: 'Restricted' }
+]
 
 // METHODS
 
-async function load () {
-
-}
-
-function addItem (kind) {
-  let newItem = {
-    id: uuid(),
-    kind,
-    visibilityMode: 'all',
-    visibilityGroups: []
-  }
-  switch (kind) {
-    case 'link':
-      newItem = {
-        ...newItem,
-        label: t('navigation.untitled', { kind: t('navigation.link') }),
-        icon: 'mdi-chevron-right',
-        targetType: 'home',
-        target: ''
-      }
-      break
-    case 'header':
-      newItem.label = t('navigation.untitled', { kind: t('navigation.header') })
-      break
-  }
-  state.currentTree = [...state.currentTree, newItem]
-  state.current = newItem
-}
-
-function deleteItem (item) {
-  state.currentTree = pull(state.currentTree, item)
-  state.current = {}
-}
-
-function selectItem (item) {
+function setItem (item) {
+  state.selected = item.id
   state.current = item
 }
 
-function selectPage () {
-  state.selectPageModal = true
+function addItem (type) {
+  const newItem = {
+    id: uuid(),
+    type,
+    visibilityGroups: [],
+    visibilityLimited: false
+  }
+  switch (type) {
+    case 'header': {
+      newItem.label = 'New Header'
+      break
+    }
+    case 'link': {
+      newItem.label = 'New Link'
+      newItem.icon = 'mdi-text-box-outline'
+      newItem.target = '/'
+      newItem.openInNewWindow = false
+      newItem.isNested = false
+      break
+    }
+  }
+  state.items.push(newItem)
+  state.selected = newItem.id
+  state.current = newItem
 }
 
-function selectPageHandle ({ path, locale }) {
-  state.current.target = `/${locale}/${path}`
+function removeItem (id) {
+  state.items = state.items.filter(item => item.id !== id)
+  state.selected = null
+  state.current = {}
 }
 
-function copyFromLocale () {
-  state.copyFromLocaleDialogIsShown = false
-  state.currentTree = [...state.currentTree, ...find(state.trees, ['locale', state.copyFromLocaleCode])?.items || []]
+function updateItemPosition (ev) {
+  const item = state.items.splice(ev.oldIndex, 1)[0]
+  state.items.splice(ev.newIndex, 0, item)
 }
 
-async function save () {
-  this.$store.commit('loadingStart', 'admin-navigation-save')
+function cleanMenuItem (item, isNested = false) {
+  switch (item.type) {
+    case 'header': {
+      return {
+        ...pick(item, ['id', 'type', 'label']),
+        visibilityGroups: item.visibilityLimited ? item.visibilityGroups : []
+      }
+    }
+    case 'link': {
+      return {
+        ...pick(item, ['id', 'type', 'label', 'icon', 'target', 'openInNewWindow']),
+        visibilityGroups: item.visibilityLimited ? item.visibilityGroups : [],
+        ...!isNested && { children: [] }
+      }
+    }
+    case 'separator': {
+      return {
+        ...pick(item, ['id', 'type']),
+        visibilityGroups: item.visibilityLimited ? item.visibilityGroups : []
+      }
+    }
+  }
+}
+
+async function loadGroups () {
+  const resp = await APOLLO_CLIENT.query({
+    query: gql`
+      query getGroupsForAdminNav {
+        groups {
+          id
+          name
+        }
+      }
+    `,
+    fetchPolicy: 'network-only'
+  })
+  state.groups = cloneDeep(resp?.data?.groups ?? [])
+}
+
+async function load () {
+  state.loading++
+  state.items = []
+  state.selected = null
+  state.current = {}
   try {
-    const resp = await APOLLO_CLIENT.mutate({
-      mutation: gql`
-        mutation ($tree: [NavigationTreeInput]!, $mode: NavigationMode!) {
-          navigation{
-            updateTree(tree: $tree) {
-              responseResult {
-                succeeded
-                errorCode
-                slug
-                message
-              }
-            },
-            updateConfig(mode: $mode) {
-              responseResult {
-                succeeded
-                errorCode
-                slug
-                message
-              }
+    const resp = await APOLLO_CLIENT.query({
+      query: gql`
+        query getNavigationForAdmin ($id: UUID!) {
+          navigationById (id: $id) {
+            id
+            type
+            label
+            icon
+            target
+            openInNewWindow
+            visibilityGroups
+            children {
+              id
+              type
+              label
+              icon
+              target
+              openInNewWindow
+              visibilityGroups
             }
           }
         }
       `,
       variables: {
-        tree: state.trees,
-        mode: state.config.mode
-      }
+        id: adminStore.currentSiteId
+      },
+      fetchPolicy: 'network-only'
     })
-    if (resp?.data.navigation.updateTree.responseResult.succeeded && resp?.data.navigation.updateConfig.responseResult.succeeded) {
-      this.$store.commit('showNotification', {
-        message: t('navigation.saveSuccess'),
-        style: 'success',
-        icon: 'check'
+    for (const item of cloneDeep(resp?.data?.navigationById ?? [])) {
+      state.items.push({
+        ...pick(item, ['id', 'type', 'label', 'icon', 'target', 'openInNewWindow', 'visibilityGroups']),
+        visibilityLimited: item.visibilityGroups?.length > 0
       })
-    } else {
-      throw new Error(resp?.data.navigation.updateTree.operation.message || 'An unexpected error occurred.')
+      for (const child of (item?.children ?? [])) {
+        state.items.push({
+          ...pick(child, ['id', 'type', 'label', 'icon', 'target', 'openInNewWindow', 'visibilityGroups']),
+          visibilityLimited: child.visibilityGroups?.length > 0,
+          isNested: true
+        })
+      }
     }
   } catch (err) {
-    this.$store.commit('pushGraphError', err)
+    console.error(err)
+    $q.notify({
+      type: 'negative',
+      message: err.message
+    })
   }
-  this.$store.commit('loadingStop', 'admin-navigation-save')
+  state.loading--
 }
 
-async function refresh () {
+async function save () {
+  state.loading++
+  try {
+    const items = []
+    for (const item of state.items) {
+      if (item.isNested) {
+        if (items.length < 1 || last(items)?.type !== 'link') {
+          throw new Error('Nested link items must be placed under a parent link.')
+        }
+        items[items.length - 1].children.push(cleanMenuItem(item, true))
+      } else {
+        items.push(cleanMenuItem(item))
+      }
+    }
+
+    const resp = await APOLLO_CLIENT.mutate({
+      mutation: gql`
+        mutation updateSiteNav (
+          $siteId: UUID!
+          $items: [NavigationItemInput!]!
+        ) {
+          updateSiteNavigation (
+            siteId: $siteId
+            items: $items
+          ) {
+            operation {
+              succeeded
+              message
+            }
+          }
+        }
+      `,
+      variables: {
+        siteId: adminStore.currentSiteId,
+        items
+      }
+    })
+    if (resp?.data?.updateSiteNavigation?.operation?.succeeded) {
+      $q.notify({
+        type: 'positive',
+        message: 'Navigation updated successfully.'
+      })
+      APOLLO_CLIENT.cache.evict('ROOT_QUERY')
+      APOLLO_CLIENT.cache.gc()
+    } else {
+      throw new Error(resp?.data?.updateSiteNavigation?.operation?.message || 'Unexpected error occurred.')
+    }
+  } catch (err) {
+    $q.notify({
+      type: 'negative',
+      message: err.message
+    })
+  }
+  state.loading--
+}
+
+// MOUNTED
+
+onMounted(() => {
   load()
-  state.current = {}
-  this.$store.commit('showNotification', {
-    message: 'Navigation has been refreshed.',
-    style: 'success',
-    icon: 'cached'
-  })
-}
-
-// apollo: {
-//   config: {
-//     query: gql`
-//       {
-//         navigation {
-//           config {
-//             mode
-//           }
-//         }
-//       }
-//     `,
-//     fetchPolicy: 'network-only',
-//     update: (data) => _.cloneDeep(data.navigation.config),
-//     watchLoading (isLoading) {
-//       this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-config')
-//     }
-//   },
-//   trees: {
-//     query: gql`
-//       {
-//         navigation {
-//           tree {
-//             locale
-//             items {
-//               id
-//               kind
-//               label
-//               icon
-//               targetType
-//               target
-//               visibilityMode
-//               visibilityGroups
-//             }
-//           }
-//         }
-//       }
-//     `,
-//     fetchPolicy: 'network-only',
-//     update: (data) => _.cloneDeep(data.navigation.tree),
-//     watchLoading (isLoading) {
-//       this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-tree')
-//     }
-//   },
-//   groups: {
-//     query: gql`
-//       query {
-//         groups {
-//           list {
-//             id
-//             name
-//             isSystem
-//             userCount
-//             createdAt
-//             updatedAt
-//           }
-//         }
-//       }
-//     `,
-//     fetchPolicy: 'network-only',
-//     update: (data) => data.groups.list,
-//     watchLoading (isLoading) {
-//       this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-groups')
-//     }
-//   },
-//   allLocales: {
-//     query: gql`
-//       {
-//         localization {
-//           locales {
-//             code
-//             name
-//             nativeName
-//           }
-//         }
-//       }
-//     `,
-//     fetchPolicy: 'network-only',
-//     update: (data) => data.localization.locales,
-//     watchLoading (isLoading) {
-//       this.$store.commit(`loading${isLoading ? 'Start' : 'Stop'}`, 'admin-navigation-locales')
-//     }
-//   }
-// }
+  loadGroups()
+})
 </script>
 
 <style lang='scss' scoped>
-.clickable {
-  cursor: pointer;
+@use 'sass:color';
 
-  &:hover {
-    background-color: rgba($blue-5, .25);
+.nav-edit-item {
+  position: relative;
+  &.is-active {
+    background-color: $blue-8;
+  }
+
+  &.sortable-chosen {
+    background-color: $blue-5;
   }
 }
 
+.nav-edit-item-header {
+  display: flex;
+  cursor: pointer;
+}
+
+.nav-edit-item-link {
+  &.is-nested {
+    border-left: 10px solid $dark-1;
+    background-color: $dark-4;
+    &.is-active {
+      background-color: $primary;
+    }
+  }
+}
+
+.nav-edit-item-separator {
+  display: flex;
+  cursor: pointer;
+}
+
+.handle {
+  cursor: grab;
+}
 </style>

@@ -18,6 +18,11 @@ extend type Mutation {
     mode: NavigationMode!
     items: [NavigationItemInput!]
   ): NavigationUpdateResponse
+
+  updateSiteNavigation(
+    siteId: UUID!
+    items: [NavigationItemInput!]!
+  ): DefaultResponse
 }
 
 # -----------------------------------------------

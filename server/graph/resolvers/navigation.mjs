@@ -8,6 +8,22 @@ export default {
     }
   },
   Mutation: {
+    async updateSiteNavigation (obj, args, context) {
+      try {
+        await WIKI.db.knex('navigation').insert({
+          id: args.siteId,
+          items: JSON.stringify(args.items),
+          siteId: args.siteId
+        }).onConflict('id').merge({
+          items: JSON.stringify(args.items)
+        })
+        return {
+          operation: generateSuccess('Site navigation updated successfully')
+        }
+      } catch (err) {
+        return generateError(err)
+      }
+    },
     async updateNavigation (obj, args, context) {
       try {
         let updateInherited = false
