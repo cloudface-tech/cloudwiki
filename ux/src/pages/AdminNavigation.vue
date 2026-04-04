@@ -342,7 +342,7 @@ import { v4 as uuid } from 'uuid'
 
 import { useI18n } from 'vue-i18n'
 import { useMeta, useQuasar } from 'quasar'
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, watch } from 'vue'
 
 import { useAdminStore } from '@/stores/admin'
 import { useSiteStore } from '@/stores/site'
@@ -589,8 +589,16 @@ async function save () {
 // MOUNTED
 
 onMounted(() => {
-  load()
   loadGroups()
+  if (adminStore.currentSiteId) {
+    load()
+  }
+})
+
+watch(() => adminStore.currentSiteId, (newVal) => {
+  if (newVal) {
+    load()
+  }
 })
 </script>
 
