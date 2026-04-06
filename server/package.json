@@ -185,7 +185,7 @@
     "eslint-plugin-node": "11.1.0",
     "eslint-plugin-promise": "7.2.1",
     "neostandard": "0.12.2",
-    "nodemon": "3.1.10"
+    "nodemon": "3.1.14"
   },
   "overrides": {
     "@graphql-tools/utils": "10.5.5"
