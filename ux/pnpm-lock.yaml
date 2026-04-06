@@ -132,8 +132,8 @@ importers:
         specifier: 1.0.0
         version: 1.0.0
       filesize:
-        specifier: 11.0.2
-        version: 11.0.2
+        specifier: 11.0.15
+        version: 11.0.15
       filesize-parser:
         specifier: 1.5.1
         version: 1.5.1
@@ -2819,9 +2819,9 @@ packages:
   filesize-parser@1.5.1:
     resolution: {integrity: sha512-wRjdlQ5JM3WHZp6xpakIHQbkcGig8ANglYQDPcQSgZUN5kcDGOgmAwB0396BxzHxcl+kr+GLuusxBnsjdO6x9A==}
 
-  filesize@11.0.2:
-    resolution: {integrity: sha512-s/iAeeWLk5BschUIpmdrF8RA8lhFZ/xDZgKw1Tan72oGws1/dFGB06nYEiyyssWUfjKNQTNRlrwMVjO9/hvXDw==}
-    engines: {node: '>= 10.4.0'}
+  filesize@11.0.15:
+    resolution: {integrity: sha512-30TpbYxQxCpi4XdVjkwXYQ37CzZltV38+P7MYroQ+4NK/Dmx9mxixFNrolzcmEIBsjT/uowC9T7kiy2+C12r1A==}
+    engines: {node: '>= 10.8.0'}
 
   fill-range@7.1.1:
     resolution: {integrity: sha512-YsGpe3WHLK8ZYi4tWDg2Jy3ebRz2rXowDxnld4bkQB00cc/1Zw9AWnC0i9ztDJitivtQvaI9KaLyKrc+hBW0yg==}
@@ -7807,7 +7807,7 @@ snapshots:
 
   filesize-parser@1.5.1: {}
 
-  filesize@11.0.2: {}
+  filesize@11.0.15: {}
 
   fill-range@7.1.1:
     dependencies:

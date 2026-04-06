@@ -55,7 +55,7 @@
     "codemirror": "5.65.11",
     "codemirror-asciidoc": "1.0.4",
     "dependency-graph": "1.0.0",
-    "filesize": "11.0.2",
+    "filesize": "11.0.15",
     "filesize-parser": "1.5.1",
     "fuse.js": "7.1.0",
     "graphql": "16.11.0",
