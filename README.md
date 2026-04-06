@@ -189,14 +189,16 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for more details.
 
 ### Now
 
-- [ ] Deploy to wiki.cloudface.tech (production)
-- [ ] Upgrade TipTap editor to v3 (major version migration)
-- [ ] Dark/light theme toggle on login page
+- [x] Deploy to wiki.cloudface.tech (production)
+- [x] Upgrade TipTap editor to latest 2.x (2.27.2)
+- [x] Dark/light theme toggle on login page
+- [ ] **Accessibility (WCAG 2.1 AA)** -- aria-labels, keyboard navigation, screen reader support, contrast fixes
+- [ ] Portuguese (pt-BR) full translation
 
 ### Next
 
+- [ ] Upgrade TipTap editor to v3 (major version migration)
 - [ ] PDF export
-- [ ] Portuguese (pt-BR) full translation
 - [ ] Landing page with live demo
 - [ ] GitHub Sponsors setup
 - [ ] Diagram editor (Mermaid integrated in WYSIWYG)
