@@ -129,7 +129,7 @@
     "octokit": "5.0.3",
     "pako": "2.1.0",
     "passport": "0.7.0",
-    "passport-auth0": "1.4.4",
+    "passport-auth0": "1.4.5",
     "passport-cas": "0.1.1",
     "passport-discord": "0.1.4",
     "passport-dropbox-oauth2": "1.1.0",
