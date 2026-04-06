@@ -7,11 +7,11 @@
 A modern, fast, and extensible wiki built with Node.js, Vue 3, and PostgreSQL.
 
 [![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=flat-square)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/gmowses/cloudwiki?style=flat-square&color=00C2FF)](https://github.com/gmowses/cloudwiki/stargazers)
-[![GitHub Issues](https://img.shields.io/github/issues/gmowses/cloudwiki?style=flat-square)](https://github.com/gmowses/cloudwiki/issues)
+[![GitHub Stars](https://img.shields.io/github/stars/cloudface-tech/cloudwiki?style=flat-square&color=00C2FF)](https://github.com/cloudface-tech/cloudwiki/stargazers)
+[![GitHub Issues](https://img.shields.io/github/issues/cloudface-tech/cloudwiki?style=flat-square)](https://github.com/cloudface-tech/cloudwiki/issues)
 [![Docker Pulls](https://img.shields.io/badge/docker-ghcr.io%2Fgmowses%2Fcloudwiki-blue?style=flat-square&logo=docker&logoColor=white)](https://ghcr.io/gmowses/cloudwiki)
 
-[Website](https://wiki.cloudface.tech) &middot; [Documentation](https://wiki.cloudface.tech/docs) &middot; [Contributing](#contributing) &middot; [Discussions](https://github.com/gmowses/cloudwiki/discussions)
+[Website](https://wiki.cloudface.tech) &middot; [Documentation](https://wiki.cloudface.tech/docs) &middot; [Contributing](#contributing) &middot; [Discussions](https://github.com/cloudface-tech/cloudwiki/discussions)
 
 </div>
 
@@ -99,7 +99,7 @@ docker compose up -d
 
 ```bash
 # Clone the repo
-git clone https://github.com/gmowses/cloudwiki.git
+git clone https://github.com/cloudface-tech/cloudwiki.git
 cd cloudwiki
 
 # Start PostgreSQL
@@ -149,7 +149,7 @@ We welcome contributions of all kinds. Whether you're fixing a typo, reporting a
 
 ### Good first issues
 
-Look for issues labeled [`good first issue`](https://github.com/gmowses/cloudwiki/labels/good%20first%20issue) -- these are specifically selected for new contributors.
+Look for issues labeled [`good first issue`](https://github.com/cloudface-tech/cloudwiki/labels/good%20first%20issue) -- these are specifically selected for new contributors.
 
 ### Areas where we need help
 
@@ -179,7 +179,7 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for more details.
 - [ ] Advanced permissions (per-page ACLs)
 - [ ] Mobile-optimized reader
 
-Have an idea? Open a [discussion](https://github.com/gmowses/cloudwiki/discussions).
+Have an idea? Open a [discussion](https://github.com/cloudface-tech/cloudwiki/discussions).
 
 ## Tech Stack
 

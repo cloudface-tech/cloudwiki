@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Help / Questions
-    url: https://github.com/gmowses/cloudwiki/discussions/categories/q-a
+    url: https://github.com/cloudface-tech/cloudwiki/discussions/categories/q-a
     about: Ask the community for help with setup or usage
   - name: Ideas / Feature Discussion
-    url: https://github.com/gmowses/cloudwiki/discussions/categories/ideas
+    url: https://github.com/cloudface-tech/cloudwiki/discussions/categories/ideas
     about: Discuss feature ideas before opening a formal request
   - name: Security Vulnerability
-    url: https://github.com/gmowses/cloudwiki/security/policy
+    url: https://github.com/cloudface-tech/cloudwiki/security/policy
     about: Privately report security issues

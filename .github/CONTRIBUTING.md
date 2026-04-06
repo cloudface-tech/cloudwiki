@@ -8,7 +8,7 @@ Thank you for considering contributing to CloudWiki! Every contribution helps ma
 - **Documentation** -- Improve guides, add examples, fix typos
 - **Translations** -- Help translate the interface into your language
 - **Bug reports** -- File detailed reports with steps to reproduce
-- **Ideas** -- Suggest features in [Discussions](https://github.com/gmowses/cloudwiki/discussions)
+- **Ideas** -- Suggest features in [Discussions](https://github.com/cloudface-tech/cloudwiki/discussions)
 - **Testing** -- Try new releases and report issues
 
 ## Getting started
@@ -38,7 +38,7 @@ Thank you for considering contributing to CloudWiki! Every contribution helps ma
 
 ## Reporting bugs
 
-Open a [GitHub Issue](https://github.com/gmowses/cloudwiki/issues/new?template=bug_report.yml) with:
+Open a [GitHub Issue](https://github.com/cloudface-tech/cloudwiki/issues/new?template=bug_report.yml) with:
 
 - Steps to reproduce
 - Expected vs actual behavior
@@ -47,7 +47,7 @@ Open a [GitHub Issue](https://github.com/gmowses/cloudwiki/issues/new?template=b
 
 ## Requesting features
 
-Start a [Discussion](https://github.com/gmowses/cloudwiki/discussions/categories/ideas) describing:
+Start a [Discussion](https://github.com/cloudface-tech/cloudwiki/discussions/categories/ideas) describing:
 
 - The problem you're trying to solve
 - Your proposed solution
@@ -55,7 +55,7 @@ Start a [Discussion](https://github.com/gmowses/cloudwiki/discussions/categories
 
 ## Questions?
 
-Open a [Discussion](https://github.com/gmowses/cloudwiki/discussions) or check existing ones first.
+Open a [Discussion](https://github.com/cloudface-tech/cloudwiki/discussions) or check existing ones first.
 
 ---
 
