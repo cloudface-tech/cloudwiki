@@ -1,0 +1,23 @@
+key: default
+title: Default
+description: Built-in advanced comments tool.
+author: cloudface.tech
+logo: /_assets/logo-cloudwiki.svg
+website: https://wiki.cloudface.tech
+codeTemplate: false
+isAvailable: true
+props:
+  akismet:
+    type: String
+    title: Akismet API Key
+    default: ''
+    hint: 'Prevent spam by using the Akismet service. Enter your API key here to enable. Leave empty to disable.'
+    maxWidth: 650
+    order: 1
+  minDelay:
+    type: Number
+    title: Post delay
+    default: 30
+    hint: 'Minimum delay (in seconds) between comments per account. Note that all guests are considered as a single account.'
+    maxWidth: 400
+    order: 2

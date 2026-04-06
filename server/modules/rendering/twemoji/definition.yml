@@ -1,0 +1,9 @@
+title: Twemoji
+description: Apply Twitter Emojis to all Unicode emojis
+author: cloudface.tech
+icon: mdi-emoticon-happy-outline
+enabledDefault: true
+dependsOn: core
+step: post
+order: 10
+props: {}

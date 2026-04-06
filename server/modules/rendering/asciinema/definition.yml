@@ -1,0 +1,7 @@
+title: Asciinema
+description: Embed asciinema players from compatible links
+author: cloudface.tech
+icon: mdi-theater
+enabledDefault: false
+dependsOn: core
+props: {}

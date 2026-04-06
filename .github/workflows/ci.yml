@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, vega]
+  push:
+    branches: [main, vega]
+
+jobs:
+  build-ux:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: ux/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ux
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: ux
+        run: pnpm build
+
+  build-blocks:
+    name: Build Blocks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: blocks/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: blocks
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: blocks
+        run: pnpm build

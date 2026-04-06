@@ -1,0 +1,7 @@
+title: Media Players
+description: Embed players such as Youtube, Vimeo, Soundcloud, etc.
+author: cloudface.tech
+icon: mdi-video
+enabledDefault: true
+dependsOn: core
+props: {}
