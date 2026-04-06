@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - main
-      - vega
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 env:
@@ -67,7 +68,8 @@ jobs:
           images: ${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest
-            type=sha,prefix=vega-,format=short
+            type=sha,prefix=,format=short
+            type=semver,pattern={{version}}
 
       - name: Build and push
         uses: docker/build-push-action@v7
