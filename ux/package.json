@@ -126,7 +126,7 @@
     "eslint-plugin-vue": "10.3.0",
     "eslint-plugin-vue-pug": "1.0.0-alpha.3",
     "neostandard": "0.12.2",
-    "sass": "1.89.2",
+    "sass": "1.99.0",
     "vite-plugin-vue-devtools": "8.0.0"
   },
   "engines": {
