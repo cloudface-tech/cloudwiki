@@ -16,7 +16,7 @@ props:
     type: String
     title: Service Name
     hint: The name of the client reported to APM
-    default: wiki-js
+    default: cloudwiki
     order: 2
   environment:
     type: String

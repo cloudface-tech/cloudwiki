@@ -121,7 +121,7 @@ props:
     type: String
     title: Provider Name
     hint: Optional human-readable name of the requester for use by the presenter's user agent or the identity provider.
-    default: wiki.js
+    default: cloudwiki
     order: 28
   skipRequestCompression:
     type: Boolean

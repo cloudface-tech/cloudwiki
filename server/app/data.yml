@@ -85,7 +85,7 @@ defaults:
       maxAge: 600
       methods: 'GET,POST'
       origin: true
-    maintainerEmail: security@requarks.io
+    maintainerEmail: security@cloudface.tech
 tsDictMappings:
   ar: arabic
   hy: armenian
