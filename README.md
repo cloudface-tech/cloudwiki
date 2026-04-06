@@ -103,6 +103,10 @@ volumes:
 docker compose up -d
 ```
 
+### Production
+
+See [deploy/README.md](deploy/README.md) for production deployment with TLS, Caddy reverse proxy, and PostgreSQL.
+
 ## Development
 
 ```bash
