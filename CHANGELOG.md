@@ -1,6 +1,6 @@
 # Changelog
 
-This file documents all changes made in the CultBR fork of Wiki.js (branch `vega`), relative to the upstream [`requarks/wiki`](https://github.com/requarks/wiki) `vega` branch.
+This file documents all changes made in the CultBR fork of CloudWiki (branch `vega`), relative to the upstream [`requarks/wiki`](https://github.com/requarks/wiki) `vega` branch.
 
 Changes are split into two categories: bug fixes that are candidates for upstream pull requests, and CultBR-specific customizations that are intentional fork-only changes.
 
@@ -82,7 +82,7 @@ The admin group detail view showed a user list but lacked the ability to add or 
 
 **File:** `ux/src/themes/cultbr.scss` (and related Quasar/Vite config)
 
-A custom SCSS theme defines the CultBR design system color palette: primary `#006FEE`, secondary `#39DDA2`, accent `#FFCF00`. These override the default Wiki.js Quasar theme variables globally.
+A custom SCSS theme defines the CultBR design system color palette: primary `#006FEE`, secondary `#39DDA2`, accent `#FFCF00`. These override the default CloudWiki Quasar theme variables globally.
 
 ### Fumadocs-style layout
 
@@ -106,13 +106,13 @@ The main page view was stripped down: the table of contents, tags section, page 
 
 **File:** `ux/src/pages/Login.vue` (or equivalent auth page)
 
-The login page was restyled with the CultBR brand gradient and logo, replacing the default Wiki.js login UI.
+The login page was restyled with the CultBR brand gradient and logo, replacing the default CloudWiki login UI.
 
-### CultBR logo replacing Wiki.js logo
+### CultBR logo replacing CloudWiki logo
 
 **Files:** `dev/build/public/cultbr.svg`, `Dockerfile`
 
-The Wiki.js logo was replaced with the CultBR logo (`cultbr.svg`) throughout the application. The Dockerfile copies the SVG into the correct location so Vite serves it from the public root.
+The CloudWiki logo was replaced with the CultBR logo (`cultbr.svg`) throughout the application. The Dockerfile copies the SVG into the correct location so Vite serves it from the public root.
 
 ### Mermaid.js CDN injection in index.html
 
@@ -133,7 +133,7 @@ Real-time collaborative editing was implemented end-to-end:
 
 **File:** `ux/src/components/WelcomeOverlay.vue`
 
-The default Wiki.js welcome/onboarding overlay was replaced with a CultBR-branded version matching the portal's visual identity.
+The default CloudWiki welcome/onboarding overlay was replaced with a CultBR-branded version matching the portal's visual identity.
 
 ### Multi-select user assignment in admin groups
 

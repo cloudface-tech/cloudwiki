@@ -94,7 +94,7 @@ onMounted(async () => {
   cm.value = CodeMirror.fromTextArea(cmRef.value, {
     tabSize: 2,
     mode: langMode,
-    theme: 'wikijs-dark',
+    theme: 'cloudwiki-dark',
     lineNumbers: true,
     lineWrapping: true,
     line: true,

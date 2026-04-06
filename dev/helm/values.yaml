@@ -6,7 +6,7 @@ replicaCount: 1
 revisionHistoryLimit: 10
 
 image:
-  repository: requarks/wiki
+  repository: gmowses/wiki
   imagePullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -95,7 +95,7 @@ volumes: []
 sideload:
   enabled: false
   # Git-Repo containing all locales.json-files you need:
-  repoURL: https://github.com/Requarks/wiki-localization
+  repoURL: https://github.com/CloudFace/wiki-localization
 
   ## This can be helpfull if you have internet access over a http proxy:
   env: []

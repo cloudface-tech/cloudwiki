@@ -14,7 +14,7 @@
           <EButton px="10" py="10" :style="button" :href="buttonLink"> {{ buttonText }} </EButton>
           <EHr :style="hr" />
           <EText :style="footer"> <b>{{ siteTitle }}</b> </EText>
-          <EText :style="footer"> Wiki.js, an open source project. </EText>
+          <EText :style="footer"> CloudWiki, an open source project. </EText>
         </ESection>
       </EContainer>
     </EBody>
