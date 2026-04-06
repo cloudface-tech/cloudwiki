@@ -8,7 +8,7 @@
             .headline.primary--text.animated.fadeInLeft {{$t('admin.comments.title')}}
             .subtitle-1.grey--text.animated.fadeInLeft.wait-p2s {{$t('admin.comments.subtitle')}}
           v-spacer
-          v-btn.animated.fadeInDown.wait-p3s(icon, outlined, color='grey', href='https://docs.requarks.io/comments', target='_blank')
+          v-btn.animated.fadeInDown.wait-p3s(icon, outlined, color='grey', href='https://wiki.cloudface.tech/docs/comments', target='_blank')
             v-icon mdi-help-circle
           v-btn.mx-3.animated.fadeInDown.wait-p2s(icon, outlined, color='grey', @click='refresh')
             v-icon mdi-refresh

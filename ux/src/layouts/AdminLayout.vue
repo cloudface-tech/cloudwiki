@@ -5,8 +5,8 @@ q-layout.admin(view='hHh Lpr lff')
       q-toolbar(style='height: 64px;', dark)
         q-btn(dense, flat, to='/')
           q-avatar(size='34px', square)
-            img(src='/_assets/logo-wikijs.svg')
-        q-toolbar-title.text-h6 Wiki.js
+            img(src='/_assets/logo-cloudwiki.svg')
+        q-toolbar-title.text-h6 CloudWiki
       q-toolbar.gt-sm.justify-center(style='height: 64px;', dark)
         .text-overline.text-uppercase.text-grey {{ t('admin.adminArea') }}
         q-badge.q-ml-sm(
@@ -53,7 +53,7 @@ q-layout.admin(view='hHh Lpr lff')
               icon='las la-heart'
               :label='t(`admin.contribute.title`)'
               no-caps
-              href='https://js.wiki/donate'
+              href='https://wiki.cloudface.tech/donate'
               target='_blank'
               type='a'
             )
@@ -295,7 +295,7 @@ const { t } = useI18n()
 // META
 
 useMeta({
-  titleTemplate: title => `${title} - ${t('admin.adminArea')} - Wiki.js`
+  titleTemplate: title => `${title} - ${t('admin.adminArea')} - CloudWiki`
 })
 
 // DATA

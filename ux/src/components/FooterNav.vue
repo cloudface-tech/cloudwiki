@@ -19,7 +19,7 @@ q-footer.site-footer
       scope='global'
       )
       template(#link)
-        a(href='https://js.wiki', target='_blank', ref='noopener noreferrer'): strong Wiki.js
+        a(href='https://wiki.cloudface.tech', target='_blank', ref='noopener noreferrer'): strong CloudWiki
   .site-footer-line(v-if='!props.generic && siteStore.footerExtra')
     span {{ siteStore.footerExtra }}
 </template>

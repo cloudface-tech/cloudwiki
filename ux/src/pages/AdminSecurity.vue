@@ -375,7 +375,7 @@ const state = reactive({
     forceAssetDownload: false,
     hstsDuration: 0,
     trustProxy: false,
-    authJwtAudience: 'urn:wiki.js',
+    authJwtAudience: 'urn:cloudwiki',
     authJwtExpiration: '30m',
     authJwtRenewablePeriod: '14d',
     uploadMaxFileSize: 0,
