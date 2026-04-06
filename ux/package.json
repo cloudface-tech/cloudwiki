@@ -124,6 +124,7 @@
     "@vue/language-plugin-pug": "3.0.4",
     "@vue/test-utils": "2.4.6",
     "autoprefixer": "10.4.21",
+    "axe-core": "4.11.2",
     "browserlist": "latest",
     "eslint": "9.32.0",
     "eslint-plugin-import": "2.32.0",
@@ -136,7 +137,8 @@
     "playwright": "1.59.1",
     "sass": "1.99.0",
     "vite-plugin-vue-devtools": "8.0.0",
-    "vitest": "4.1.2"
+    "vitest": "4.1.2",
+    "vitest-axe": "0.1.0"
   },
   "engines": {
     "node": ">= 18.0",
