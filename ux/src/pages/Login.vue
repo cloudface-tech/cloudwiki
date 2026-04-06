@@ -27,6 +27,7 @@ import { useSiteStore } from '@/stores/site'
 // QUASAR
 
 const $q = useQuasar()
+$q.dark.set('auto')
 
 // STORES
 
@@ -492,6 +493,26 @@ onMounted(() => {
         position: absolute;
         user-select: none;
       }
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .auth-content {
+      background: #1E2D4A;
+      box-shadow: 20px 0 60px rgba(0,0,0,0.5);
+    }
+
+    .auth-site-title {
+      color: #FFFFFF;
+    }
+
+    .auth-subtitle {
+      color: #C5CDE3;
+    }
+
+    .auth-footer {
+      border-top-color: #2A3F63;
+      color: #C5CDE3;
     }
   }
 </style>
