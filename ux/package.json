@@ -60,7 +60,7 @@
     "highlight.js": "11.11.1",
     "js-cookie": "3.0.5",
     "jwt-decode": "4.0.0",
-    "katex": "0.16.22",
+    "katex": "0.16.45",
     "lodash-es": "4.17.21",
     "lowlight": "3.3.0",
     "luxon": "3.7.1",
