@@ -33,9 +33,8 @@ RUN sed -i 's|</head>|<link href="https://fonts.googleapis.com/css2?family=Inter
 # Create data assets directory
 RUN mkdir -p ./data/assets
 
-# Create ESM re-exports for helpers required by CJS storage modules
-RUN echo 'export { parsePath, generateHash, injectPageMetadata, isReservedPath, getFileExtension, getContentType, getPagePath } from "./page.mjs";' > ./server/helpers/page.js
-RUN echo 'export { createDeferred, decodeTreePath, encodeTreePath, generateHash, getTypeDefaultValue, parseModuleProps, getDictNameFromLocale } from "./common.mjs";' > ./server/helpers/common.js
+# Fix CJS storage modules to import .mjs helpers instead of .js
+RUN find ./server/modules/storage -name "*.cjs" -exec sed -i "s|helpers/page.js|helpers/page.mjs|g;s|helpers/common.js|helpers/common.mjs|g" {} \;
 
 # Fix CJS modules: rename .js to .cjs and create ESM wrappers with 3-arg adapter
 RUN find ./server/modules/authentication -name "authentication.js" -exec sh -c \
