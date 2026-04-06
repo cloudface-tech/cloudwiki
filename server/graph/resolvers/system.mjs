@@ -65,7 +65,7 @@ export default {
           'state_change'
         ])
         .where('datname', WIKI.db.knex.client.connectionSettings.database)
-        .andWhereLike('application_name', 'Wiki.js%')
+        .andWhereLike('application_name', 'CloudWiki%')
       const insts = {}
       for (const inst of instRaw) {
         const instId = inst.application_name.substring(10, 20)

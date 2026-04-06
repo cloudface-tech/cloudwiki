@@ -146,7 +146,7 @@ export class User extends Model {
     }
     primaryEmail = primaryEmail.toLowerCase()
 
-    // Find existing user by email (Wiki.js 3.0 schema)
+    // Find existing user by email (CloudWiki 3.0 schema)
     let user = await WIKI.db.users.query().findOne({ email: primaryEmail })
 
     // Parse display name
@@ -400,7 +400,7 @@ export class User extends Model {
         algorithm: 'RS256',
         expiresIn: WIKI.config.auth.tokenExpiration,
         audience: WIKI.config.auth.audience,
-        issuer: 'urn:wiki.js'
+        issuer: 'urn:cloudwiki'
       }),
       user
     }

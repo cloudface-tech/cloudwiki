@@ -57,7 +57,7 @@ export default {
     }
     return this.transport.sendMail({
       headers: {
-        'x-mailer': 'Wiki.js'
+        'x-mailer': 'CloudWiki'
       },
       from: `"${WIKI.config.mail.senderName}" <${WIKI.config.mail.senderEmail}>`,
       to: opts.to,

@@ -2,8 +2,8 @@ title: 'SFTP'
 icon: '/_assets/icons/ultraviolet-nas.svg'
 banner: '/_assets/storage/ssh.jpg'
 description: 'Store files over a remote connection using the SSH File Transfer Protocol.'
-vendor: 'Wiki.js'
-website: 'https://js.wiki'
+vendor: 'CloudWiki'
+website: 'https://wiki.cloudface.tech'
 assetDelivery:
   isStreamingSupported: false
   isDirectAccessSupported: false

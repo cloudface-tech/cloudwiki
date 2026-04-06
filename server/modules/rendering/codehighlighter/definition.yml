@@ -1,6 +1,6 @@
 title: Code Highlighting Post-Processor
 description: Syntax detector for programming code
-author: requarks.io
+author: cloudface.tech
 icon: mdi-code-braces
 enabledDefault: true
 dependsOn: core

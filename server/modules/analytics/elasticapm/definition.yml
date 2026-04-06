@@ -1,7 +1,7 @@
 key: elasticapm
 title: Elasticsearch APM RUM
 description: Real User Monitoring captures user interaction with clients such as web browsers.
-author: requarks.io
+author: cloudface.tech
 logo: https://static.requarks.io/logo/elasticsearch-apm.svg
 website: https://www.elastic.co/solutions/apm
 isAvailable: true

@@ -1,7 +1,7 @@
 key: gitlab
 title: GitLab
 description: GitLab is a web-based DevOps lifecycle tool that provides a Git-repository manager providing wiki, issue-tracking and CI/CD pipeline features.
-author: requarks.io
+author: cloudface.tech
 logo: https://static.requarks.io/logo/gitlab.svg
 icon: /_assets/icons/ultraviolet-gitlab.svg
 color: deep-orange

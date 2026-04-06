@@ -15,7 +15,7 @@ let isShuttingDown = false
 export default {
   async init() {
     WIKI.logger.info('=======================================')
-    WIKI.logger.info(`= Wiki.js ${padEnd(WIKI.version + ' ', 29, '=')}`)
+    WIKI.logger.info(`= CloudWiki ${padEnd(WIKI.version + ' ', 29, '=')}`)
     WIKI.logger.info('=======================================')
     WIKI.logger.info('Initializing...')
     WIKI.logger.info(`Running node.js ${process.version}`)

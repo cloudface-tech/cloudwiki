@@ -1,6 +1,6 @@
 title: Security
 description: Filter and strips potentially dangerous content
-author: requarks.io
+author: cloudface.tech
 icon: mdi-fire
 enabledDefault: true
 dependsOn: core

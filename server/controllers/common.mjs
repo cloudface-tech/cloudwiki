@@ -44,7 +44,7 @@ export default function () {
           // TODO: Fetch from db if not in disk cache
           res.sendFile(path.join(siteAssetsPath, `logo-${site.id}.${site.config.assets.logoExt}`))
         } else {
-          res.sendFile(path.join(WIKI.ROOTPATH, 'assets/_assets/logo-wikijs.svg'))
+          res.sendFile(path.join(WIKI.ROOTPATH, 'assets/_assets/logo-cloudwiki.svg'))
         }
         break
       }
@@ -53,7 +53,7 @@ export default function () {
           // TODO: Fetch from db if not in disk cache
           res.sendFile(path.join(siteAssetsPath, `favicon-${site.id}.${site.config.assets.faviconExt}`))
         } else {
-          res.sendFile(path.join(WIKI.ROOTPATH, 'assets/_assets/logo-wikijs.svg'))
+          res.sendFile(path.join(WIKI.ROOTPATH, 'assets/_assets/logo-cloudwiki.svg'))
         }
         break
       }

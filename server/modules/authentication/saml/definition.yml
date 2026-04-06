@@ -1,7 +1,7 @@
 key: saml
 title: SAML 2.0
 description: Security Assertion Markup Language 2.0 (SAML 2.0) is a version of the SAML standard for exchanging authentication and authorization data between security domains.
-author: requarks.io
+author: cloudface.tech
 logo: https://static.requarks.io/logo/saml.svg
 icon: /_assets/icons/ultraviolet-saml.svg
 color: red darken-3

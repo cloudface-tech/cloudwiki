@@ -1,6 +1,6 @@
 title: Mermaid
 description: Generate flowcharts from Mermaid syntax
-author: requarks.io
+author: cloudface.tech
 icon: mdi-arrow-decision-outline
 enabledDefault: true
 dependsOn: core

@@ -1,7 +1,7 @@
 key: core
 title: Core
 description: Basic HTML Parser
-author: requarks.io
+author: cloudface.tech
 icon: mdi-language-html5
 props:
   absoluteLinks:
