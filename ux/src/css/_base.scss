@@ -8,8 +8,8 @@
 // ------------------------------------------------------------------
 
 html {
-  --scrollbarBG: #CCC;
-  --thumbBG: #999;
+  --scrollbarBG: #F5F7FA;
+  --thumbBG: #C5CDE3;
 }
 body::-webkit-scrollbar {
   width: 7px;
@@ -32,12 +32,23 @@ body::-webkit-scrollbar-thumb {
 // ------------------------------------------------------------------
 
 @font-face {
-  font-family: 'Roboto Mono';
-  src: url(/_assets/fonts/roboto-mono/roboto-mono.woff2);
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url(/_assets/fonts/inter/inter.woff2) format('woff2');
 }
 
-.font-robotomono {
-  font-family: 'Roboto Mono', Consolas, "Liberation Mono", Courier, monospace;
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url(/_assets/fonts/jetbrains-mono/jetbrains-mono.woff2) format('woff2');
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
 }
 
 .text-wordbreak-all {
@@ -49,32 +60,32 @@ body::-webkit-scrollbar-thumb {
 // ------------------------------------------------------------------
 
 :root {
-  --q-header: #000;
-  --q-sidebar: #1976D2;
+  --q-header: #101B37;
+  --q-sidebar: #101B37;
 }
 
 .header, .bg-header {
-  background: #000;
+  background: #101B37;
   background: var(--q-header);
 }
 .sidebar, .bg-sidebar {
-  background: #1976D2;
+  background: #101B37;
   background: var(--q-sidebar);
 }
 
-.bg-dark-6 { background-color: #070a0d; }
-.bg-dark-5 { background-color: #0d1117; }
-.bg-dark-4 { background-color: #161b22; }
-.bg-dark-3 { background-color: #1e232a; }
-.bg-dark-2 { background-color: #292f39; }
-.bg-dark-1 { background-color: #343b48; }
+.bg-dark-6 { background-color: #0D0E1A; }
+.bg-dark-5 { background-color: #101B37; }
+.bg-dark-4 { background-color: #1E2D4A; }
+.bg-dark-3 { background-color: #2A3550; }
+.bg-dark-2 { background-color: #3A4560; }
+.bg-dark-1 { background-color: #4D556B; }
 
 // ------------------------------------------------------------------
 // FORMS
 // ------------------------------------------------------------------
 
 .v-textarea.is-monospaced textarea {
-  font-family: 'Roboto Mono', 'Courier New', Courier, monospace;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
   font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
