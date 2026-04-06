@@ -42,6 +42,9 @@ RUN find ./server/modules/authentication -name "authentication.js" -exec sh -c \
 # Create stub for missing asset helper (removed in v3)
 RUN echo 'export default {}' > ./server/helpers/asset.mjs
 
+# Rename CJS helper files in storage that aren't storage.js
+RUN find ./server/modules/storage -name "common.js" -exec sh -c 'mv "{}" "$(dirname {})"/common.cjs' \;
+
 # Fix CJS storage requires: add .mjs extension to helper imports
 RUN find ./server/modules/storage -name "*.cjs" -exec sed -i \
     -e "s|require('../../../helpers/page.js')|require('../../../helpers/page.mjs')|g" \
@@ -50,7 +53,6 @@ RUN find ./server/modules/storage -name "*.cjs" -exec sed -i \
     -e "s|require('../../../helpers/asset')|require('../../../helpers/asset.mjs')|g" \
     -e "s|require('../../../helpers/common.js')|require('../../../helpers/common.mjs')|g" \
     -e "s|require('../../../helpers/common')|require('../../../helpers/common.mjs')|g" \
-    -e "s|require('../disk/common.js')|require('../disk/common.cjs')|g" \
     -e "s|require('../disk/common')|require('../disk/common.cjs')|g" \
     {} \;
 
