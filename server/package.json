@@ -40,7 +40,7 @@
     "@as-integrations/express5": "1.1.2",
     "@azure/storage-blob": "12.28.0",
     "@exlinc/keycloak-passport": "1.0.2",
-    "@graphql-tools/schema": "10.0.25",
+    "@graphql-tools/schema": "10.0.31",
     "@graphql-tools/utils": "10.9.1",
     "@hexagon/base64": "2.0.4",
     "@hocuspocus/extension-database": "3.4.4",
