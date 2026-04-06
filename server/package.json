@@ -161,7 +161,7 @@
     "safe-regex": "2.1.1",
     "sanitize-filename": "1.6.3",
     "scim-query-filter-parser": "2.0.4",
-    "semver": "7.7.2",
+    "semver": "7.7.4",
     "serve-favicon": "2.5.1",
     "sharp": "0.34.3",
     "simple-git": "3.28.0",
