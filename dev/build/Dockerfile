@@ -34,8 +34,8 @@ RUN sed -i 's|</head>|<link href="https://fonts.googleapis.com/css2?family=Inter
 RUN mkdir -p ./data/assets
 
 # Create CJS shims for helpers required by storage modules
-RUN printf "const{createRequire}=require("module");const r=createRequire("file://"+__filename);module.exports=r("./page.mjs");" > ./server/helpers/page.js
-RUN printf "const{createRequire}=require("module");const r=createRequire("file://"+__filename);module.exports=r("./common.mjs");" > ./server/helpers/common.js
+RUN echo 'module.exports = require("./page.mjs");' > ./server/helpers/page.js
+RUN echo 'module.exports = require("./common.mjs");' > ./server/helpers/common.js
 
 # Fix CJS modules: rename .js to .cjs and create ESM wrappers with 3-arg adapter
 RUN find ./server/modules/authentication -name "authentication.js" -exec sh -c \
