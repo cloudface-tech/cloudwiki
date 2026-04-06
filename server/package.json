@@ -76,7 +76,7 @@
     "dotize": "0.6.0",
     "emoji-regex": "10.4.0",
     "eventemitter2": "6.4.9",
-    "express": "5.1.0",
+    "express": "5.2.1",
     "express-brute": "1.0.1",
     "express-session": "1.18.2",
     "file-type": "21.0.0",
