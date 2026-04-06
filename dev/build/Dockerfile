@@ -33,14 +33,23 @@ RUN sed -i 's|</head>|<link href="https://fonts.googleapis.com/css2?family=Inter
 # Create data assets directory
 RUN mkdir -p ./data/assets
 
-# Fix CJS storage modules to import .mjs helpers instead of .js
-RUN find ./server/modules/storage -name "*.cjs" -exec sed -i "s|helpers/page.js|helpers/page.mjs|g;s|helpers/common.js|helpers/common.mjs|g" {} \;
-
 # Fix CJS modules: rename .js to .cjs and create ESM wrappers with 3-arg adapter
 RUN find ./server/modules/authentication -name "authentication.js" -exec sh -c \
     'mv "{}" "$(dirname {})"/authentication.cjs && printf "import{createRequire}from\"module\";const require=createRequire(import.meta.url);const m=require(\"./authentication.cjs\");const w={...m,init(p,id,c){return m.init(p,{...c,key:id})}};export default w;\n" > "$(dirname {})"/authentication.mjs' \; && \
     find ./server/modules/storage -name "storage.js" -exec sh -c \
     'mv "{}" "$(dirname {})"/storage.cjs && printf "import{createRequire}from\"module\";const require=createRequire(import.meta.url);const m=require(\"./storage.cjs\");export default m;\n" > "$(dirname {})"/storage.mjs' \;
+
+# Fix CJS storage requires: add .mjs extension to helper imports
+RUN find ./server/modules/storage -name "*.cjs" -exec sed -i \
+    -e "s|require('../../../helpers/page.js')|require('../../../helpers/page.mjs')|g" \
+    -e "s|require('../../../helpers/page')|require('../../../helpers/page.mjs')|g" \
+    -e "s|require('../../../helpers/asset.js')|require('../../../helpers/asset.mjs')|g" \
+    -e "s|require('../../../helpers/asset')|require('../../../helpers/asset.mjs')|g" \
+    -e "s|require('../../../helpers/common.js')|require('../../../helpers/common.mjs')|g" \
+    -e "s|require('../../../helpers/common')|require('../../../helpers/common.mjs')|g" \
+    -e "s|require('../disk/common.js')|require('../disk/common.mjs')|g" \
+    -e "s|require('../disk/common')|require('../disk/common.mjs')|g" \
+    {} \;
 
 USER node
 
