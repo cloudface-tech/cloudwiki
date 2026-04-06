@@ -50,8 +50,8 @@ RUN find ./server/modules/storage -name "*.cjs" -exec sed -i \
     -e "s|require('../../../helpers/asset')|require('../../../helpers/asset.mjs')|g" \
     -e "s|require('../../../helpers/common.js')|require('../../../helpers/common.mjs')|g" \
     -e "s|require('../../../helpers/common')|require('../../../helpers/common.mjs')|g" \
-    -e "s|require('../disk/common.js')|require('../disk/common.mjs')|g" \
-    -e "s|require('../disk/common')|require('../disk/common.mjs')|g" \
+    -e "s|require('../disk/common.js')|require('../disk/common.cjs')|g" \
+    -e "s|require('../disk/common')|require('../disk/common.cjs')|g" \
     {} \;
 
 USER node
