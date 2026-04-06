@@ -1,0 +1,25 @@
+name: Welcome
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: >
+            Thanks for opening your first issue! The maintainers will take a look soon.
+            In the meantime, make sure you've provided all the details requested in the template.
+          pr-message: >
+            Thanks for your first pull request! A maintainer will review it shortly.
+            Make sure CI passes and the PR description explains what changed and why.
