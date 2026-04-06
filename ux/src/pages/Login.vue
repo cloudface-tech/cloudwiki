@@ -3,11 +3,11 @@
   .auth-content
     .auth-logo
       img(:src='`/_site/logo`' :alt='siteStore.title')
-    h2.auth-site-title CultBR Wiki
-    p.text-grey-7.auth-subtitle Plataforma de Gestão Cultural do Ministério da Cultura
+    h2.auth-site-title CloudWiki
+    p.text-grey-7.auth-subtitle Open-source knowledge platform
     auth-login-panel
     .auth-footer
-      span.text-grey-5 Mantido por NEES/UFAL
+      span.text-grey-5 Powered by CloudFace
   .auth-bg(aria-hidden="true")
 </template>
 
@@ -414,7 +414,7 @@ onMounted(() => {
 
 <style lang="scss">
  .auth {
-    background: linear-gradient(135deg, #19191C 0%, #1A2744 40%, #006FEE 100%);
+    background: linear-gradient(135deg, #101B37 0%, #1A2847 40%, #00C2FF 100%);
     display: flex;
     min-height: 100vh;
 
@@ -450,8 +450,8 @@ onMounted(() => {
       line-height: 2rem;
       font-weight: 700;
       margin: 0 0 2px 0;
-      color: #19191C;
-      font-family: 'Poppins', sans-serif;
+      color: #101B37;
+      font-family: 'Inter', system-ui, sans-serif;
     }
 
     &-subtitle {
@@ -484,8 +484,8 @@ onMounted(() => {
       justify-content: center;
 
       &::after {
-        content: 'CultBR';
-        font-family: 'Poppins', sans-serif;
+        content: 'CloudWiki';
+        font-family: 'Inter', system-ui, sans-serif;
         font-size: 8rem;
         font-weight: 800;
         color: rgba(255,255,255,0.06);
