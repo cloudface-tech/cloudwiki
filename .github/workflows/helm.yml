@@ -21,6 +21,6 @@ jobs:
       - name: Package and Push Chart
         run: |
           helm plugin install https://github.com/chartmuseum/helm-push.git
-          helm repo add chartmuseum https://charts.js.wiki
+          helm repo add chartmuseum https://charts.wiki.cloudface.tech
           helm cm-push --version="2.2.${{github.run_number}}" --username="${{secrets.HELM_REPO_USERNAME}}" --password="${{secrets.HELM_REPO_PASSWORD}}" dev/helm/ chartmuseum
           helm repo remove chartmuseum
