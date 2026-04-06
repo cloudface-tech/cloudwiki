@@ -18,7 +18,7 @@ If you find such vulnerability, it's important to disclose it in a quick and sec
 
 ### A) Disclose on Huntr.dev
 
-Disclose the vulnerability on [Huntr.dev](https://huntr.dev/bounties/disclose) for the repository `https://github.com/CloudFace/wiki`.
+Disclose the vulnerability on [Huntr.dev](https://huntr.dev/bounties/disclose) for the repository `https://github.com/gmowses/cloudwiki`.
 
 ### B) Send an email
 

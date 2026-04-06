@@ -1,75 +1,62 @@
-# Contribute
+# Contributing to CloudWiki
 
-## Introduction
+Thank you for considering contributing to CloudWiki! Every contribution helps make this project better for everyone.
 
-First, thank you for considering contributing to CloudWiki! It's people like you that make the open source community such a great community! 😊
+## Ways to contribute
 
-We welcome any type of contribution, not only code. You can help with
-- **QA**: file bug reports, the more details you can give the better (e.g. screenshots with the console open)
-- **Marketing**: writing blog posts, howto's, printing stickers, ...
-- **Community**: presenting the project at meetups, organizing a dedicated meetup for the local community, ...
-- **Code**: take a look at the [open issues](https://github.com/CloudFace/wiki/issues). Even if you can't write code, commenting on them, showing that you care about a given issue matters. It helps us triage them.
-- **Money**: we welcome financial contributions in full transparency on our [open collective](https://opencollective.com/cloudwiki).
+- **Code** -- Fix bugs, add features, improve performance
+- **Documentation** -- Improve guides, add examples, fix typos
+- **Translations** -- Help translate the interface into your language
+- **Bug reports** -- File detailed reports with steps to reproduce
+- **Ideas** -- Suggest features in [Discussions](https://github.com/gmowses/cloudwiki/discussions)
+- **Testing** -- Try new releases and report issues
 
-## Your First Contribution
+## Getting started
 
-Working on your first Pull Request? You can learn how from this *free* course, [How to Contribute to an Open Source Project on GitHub](https://egghead.io/courses/how-to-contribute-to-an-open-source-project-on-github).
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/cloudwiki.git`
+3. Create a branch from `vega`: `git checkout -b feat/my-feature vega`
+4. Set up the dev environment (see [README](../README.md#development))
+5. Make your changes
+6. Verify the build: `cd ux && pnpm build`
+7. Push and open a Pull Request against the `vega` branch
 
-## Submitting code
+## Pull request guidelines
 
-Any code change should be submitted as a pull request. The description should explain what the code does and give steps to execute it. The pull request should also contain tests.
+- **One PR per feature or fix** -- Keep changes focused
+- **Describe what and why** -- Not just what you changed, but why it matters
+- **Use conventional commits** -- `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`
+- **Test your changes** -- At minimum, verify `pnpm build` passes
+- **Keep it small** -- Smaller PRs are easier to review and merge faster
 
-## Code review process
+## Code style
 
-The bigger the pull request, the longer it will take to review and merge. Try to break down large pull requests in smaller chunks that are easier to review and merge.
-It is also always helpful to have some context for your pull request. What was the purpose? Why does it matter to you?
+- Follow existing patterns in the codebase
+- Vue components use Pug templates and SCSS
+- Server code uses ES Modules (.mjs)
+- Use meaningful variable and function names
 
-## Requesting new features / enhancements
+## Reporting bugs
 
-Use the feature request board to submit new ideas and vote on which ideas should be integrated first.
+Open a [GitHub Issue](https://github.com/gmowses/cloudwiki/issues/new?template=bug_report.yml) with:
 
-:triangular_flag_on_post: [https://wiki.js.org/feedback/](https://wiki.js.org/feedback/)
+- Steps to reproduce
+- Expected vs actual behavior
+- Browser, OS, and CloudWiki version
+- Screenshots or logs if applicable
 
-*Do not use GitHub issues to submit new feature ideas, as it will closed and you'll be asked to use the feature request board above. GitHub Issues are limited to bugs / issues / help*.
+## Requesting features
 
-## Financial contributions
+Start a [Discussion](https://github.com/gmowses/cloudwiki/discussions/categories/ideas) describing:
 
-We also welcome financial contributions in full transparency on our [open collective](https://opencollective.com/cloudwiki).
-Anyone can file an expense. If the expense makes sense for the development of the community, it will be "merged" in the ledger of our open collective by the core contributors and the person who filed the expense will be reimbursed.
+- The problem you're trying to solve
+- Your proposed solution
+- Any alternatives you considered
 
-## Questions
+## Questions?
 
-If you have any questions, create an [issue](https://github.com/CloudFace/wiki/issues/new/choose) (protip: do a quick search first to see if someone else didn't ask the same question before!).
-You can also reach us at <hello@cloudwiki.opencollective.com>.
+Open a [Discussion](https://github.com/gmowses/cloudwiki/discussions) or check existing ones first.
 
-## Credits
+---
 
-### Contributors
-
-Thank you to all the people who have already contributed to CloudWiki!
-<a href="https://github.com/CloudFace/wiki/graphs/contributors"><img src="https://opencollective.com/cloudwiki/contributors.svg?width=890" /></a>
-
-
-### Backers
-
-Thank you to all our backers! [[Become a backer](https://opencollective.com/cloudwiki#backer)]
-
-<a href="https://opencollective.com/cloudwiki#backers" target="_blank"><img src="https://opencollective.com/cloudwiki/backers.svg?width=890"></a>
-
-
-### Sponsors
-
-Thank you to all our sponsors! (please ask your company to also support this open source project by [becoming a sponsor](https://opencollective.com/cloudwiki#sponsor))
-
-<a href="https://opencollective.com/cloudwiki/sponsor/0/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/1/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/2/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/3/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/4/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/5/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/6/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/7/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/8/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/cloudwiki/sponsor/9/website" target="_blank"><img src="https://opencollective.com/cloudwiki/sponsor/9/avatar.svg"></a>
-
-<!-- This `CONTRIBUTING.md` is based on @nayafia's template https://github.com/nayafia/contributing-template -->
+Thank you for helping make CloudWiki better.
