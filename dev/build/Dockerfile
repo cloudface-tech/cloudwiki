@@ -39,6 +39,9 @@ RUN find ./server/modules/authentication -name "authentication.js" -exec sh -c \
     find ./server/modules/storage -name "storage.js" -exec sh -c \
     'mv "{}" "$(dirname {})"/storage.cjs && printf "import{createRequire}from\"module\";const require=createRequire(import.meta.url);const m=require(\"./storage.cjs\");export default m;\n" > "$(dirname {})"/storage.mjs' \;
 
+# Create stub for missing asset helper (removed in v3)
+RUN echo 'module.exports = {}' > ./server/helpers/asset.mjs
+
 # Fix CJS storage requires: add .mjs extension to helper imports
 RUN find ./server/modules/storage -name "*.cjs" -exec sed -i \
     -e "s|require('../../../helpers/page.js')|require('../../../helpers/page.mjs')|g" \
