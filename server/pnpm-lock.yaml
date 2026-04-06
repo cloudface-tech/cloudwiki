@@ -210,14 +210,14 @@ importers:
         specifier: 3.7.2
         version: 3.7.2
       markdown-it:
-        specifier: 14.1.0
-        version: 14.1.0
+        specifier: 14.1.1
+        version: 14.1.1
       markdown-it-abbr:
         specifier: 2.0.0
         version: 2.0.0
       markdown-it-attrs:
         specifier: 4.3.1
-        version: 4.3.1(markdown-it@14.1.0)
+        version: 4.3.1(markdown-it@14.1.1)
       markdown-it-decorate:
         specifier: 1.2.2
         version: 1.2.2
@@ -238,7 +238,7 @@ importers:
         version: 4.0.0
       markdown-it-mdc:
         specifier: 0.2.6
-        version: 0.2.6(@types/markdown-it@14.1.2)(markdown-it@14.1.0)
+        version: 0.2.6(@types/markdown-it@14.1.2)(markdown-it@14.1.1)
       markdown-it-multimd-table:
         specifier: 4.2.3
         version: 4.2.3
@@ -3639,8 +3639,8 @@ packages:
   markdown-it-task-lists@2.1.1:
     resolution: {integrity: sha512-TxFAc76Jnhb2OUu+n3yz9RMu4CwGfaT788br6HhEDlvWfdeJcLUsxk1Hgw2yJio0OXsxv7pyIPmvECY7bMbluA==}
 
-  markdown-it@14.1.0:
-    resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
+  markdown-it@14.1.1:
+    resolution: {integrity: sha512-BuU2qnTti9YKgK5N+IeMubp14ZUKUUw7yeJbkjtosvHiP0AZ5c8IAgEMk79D0eC8F23r4Ac/q8cAIFdm2FtyoA==}
     hasBin: true
 
   math-intrinsics@1.1.0:
@@ -8873,9 +8873,9 @@ snapshots:
 
   markdown-it-abbr@2.0.0: {}
 
-  markdown-it-attrs@4.3.1(markdown-it@14.1.0):
+  markdown-it-attrs@4.3.1(markdown-it@14.1.1):
     dependencies:
-      markdown-it: 14.1.0
+      markdown-it: 14.1.1
 
   markdown-it-decorate@1.2.2: {}
 
@@ -8891,10 +8891,10 @@ snapshots:
 
   markdown-it-mark@4.0.0: {}
 
-  markdown-it-mdc@0.2.6(@types/markdown-it@14.1.2)(markdown-it@14.1.0):
+  markdown-it-mdc@0.2.6(@types/markdown-it@14.1.2)(markdown-it@14.1.1):
     dependencies:
       '@types/markdown-it': 14.1.2
-      markdown-it: 14.1.0
+      markdown-it: 14.1.1
       yaml: 2.8.0
 
   markdown-it-multimd-table@4.2.3: {}
@@ -8905,7 +8905,7 @@ snapshots:
 
   markdown-it-task-lists@2.1.1: {}
 
-  markdown-it@14.1.0:
+  markdown-it@14.1.1:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
