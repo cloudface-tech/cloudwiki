@@ -1,8 +1,8 @@
 {
-  "name": "wiki-server",
+  "name": "cloudwiki-server",
   "version": "3.0.0",
   "releaseDate": "2023-01-01T01:01:01.000Z",
-  "description": "The most powerful and extensible open source Wiki software",
+  "description": "Open-source knowledge platform by CloudFace",
   "main": "index.mjs",
   "type": "module",
   "private": true,
@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Requarks/wiki.git"
+    "url": "git+https://github.com/gmowses/cloudwiki.git"
   },
   "keywords": [
     "wiki",
@@ -29,9 +29,9 @@
   "author": "Nicolas Giard",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/Requarks/wiki/issues"
+    "url": "https://github.com/gmowses/cloudwiki/issues"
   },
-  "homepage": "https://github.com/Requarks/wiki#readme",
+  "homepage": "https://github.com/gmowses/cloudwiki#readme",
   "engines": {
     "node": ">=18.0"
   },
