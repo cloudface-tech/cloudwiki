@@ -74,7 +74,7 @@
     "diff2html": "3.4.52",
     "dompurify": "3.2.6",
     "dotize": "0.6.0",
-    "emoji-regex": "10.4.0",
+    "emoji-regex": "10.6.0",
     "eventemitter2": "6.4.9",
     "express": "5.1.0",
     "express-brute": "1.0.1",
