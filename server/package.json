@@ -86,7 +86,7 @@
     "graphql": "16.11.0",
     "graphql-list-fields": "2.0.4",
     "graphql-rate-limit-directive": "2.0.6",
-    "graphql-tools": "9.0.20",
+    "graphql-tools": "9.0.26",
     "graphql-upload": "17.0.0",
     "gray-matter": "4.0.3",
     "he": "1.2.0",
