@@ -81,7 +81,7 @@
     "express-session": "1.18.2",
     "file-type": "21.0.0",
     "filesize": "11.0.2",
-    "fs-extra": "11.3.0",
+    "fs-extra": "11.3.4",
     "getos": "3.2.1",
     "graphql": "16.11.0",
     "graphql-list-fields": "2.0.4",
