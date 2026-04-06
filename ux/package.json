@@ -8,7 +8,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite --force",
-    "build": "NODE_OPTIONS=--max-old-space-size=8192 vite build --emptyOutDir"
+    "build": "NODE_OPTIONS=--max-old-space-size=8192 vite build --emptyOutDir",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@apollo/client": "3.13.8",
@@ -113,10 +116,13 @@
   "devDependencies": {
     "@eslint/js": "9.32.0",
     "@intlify/unplugin-vue-i18n": "6.0.8",
+    "@playwright/test": "1.59.1",
     "@quasar/app-vite": "2.3.0",
     "@quasar/vite-plugin": "1.10.0",
     "@types/lodash": "4.17.20",
+    "@vitest/coverage-v8": "4.1.2",
     "@vue/language-plugin-pug": "3.0.4",
+    "@vue/test-utils": "2.4.6",
     "autoprefixer": "10.4.21",
     "browserlist": "latest",
     "eslint": "9.32.0",
@@ -125,9 +131,12 @@
     "eslint-plugin-promise": "7.2.1",
     "eslint-plugin-vue": "10.3.0",
     "eslint-plugin-vue-pug": "1.0.0-alpha.3",
+    "happy-dom": "20.8.9",
     "neostandard": "0.12.2",
+    "playwright": "1.59.1",
     "sass": "1.99.0",
-    "vite-plugin-vue-devtools": "8.0.0"
+    "vite-plugin-vue-devtools": "8.0.0",
+    "vitest": "4.1.2"
   },
   "engines": {
     "node": ">= 18.0",

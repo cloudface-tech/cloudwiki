@@ -1,0 +1,15 @@
+{
+  "name": "cloudwiki",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "pnpm -r test",
+    "test:server": "cd server && pnpm test",
+    "test:ux": "cd ux && pnpm test",
+    "test:e2e": "playwright test",
+    "test:security": "pnpm audit --audit-level=high"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
+  }
+}
