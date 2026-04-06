@@ -9,7 +9,7 @@ module.exports = {
 
     const migrations = await knex('migrations')
     if (_.some(migrations, m => m.name.indexOf('2.0.0') === 0)) {
-      WIKI.logger.info('Found legacy 2.x installation of Wiki.js...')
+      WIKI.logger.info('Found legacy 2.x installation of CloudWiki...')
       if (_.some(migrations, m => m.name.indexOf('2.5.128') === 0)) {
         // TODO: 2.x MIGRATIONS for 3.0
         WIKI.logger.error('Upgrading from 2.x is not yet supported. A future release will allow for upgrade from 2.x. Exiting...')

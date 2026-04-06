@@ -42,7 +42,7 @@ q-page.admin-system
       //- -----------------------
       q-card.q-pb-sm
         q-card-section
-          .text-subtitle1 Wiki.js
+          .text-subtitle1 CloudWiki
         q-item
           blueprint-icon(icon='breakable', :hue-rotate='-45')
           q-item-section
@@ -334,7 +334,7 @@ onMounted(() => {
   load()
   const clip = new ClipboardJS(copySysInfoBtn.value.$el, {
     text: () => {
-      return `Wiki.js ${state.info.currentVersion}
+      return `CloudWiki ${state.info.currentVersion}
 Postgres ${dbVersion.value}
 Node.js ${state.info.nodeVersion}
 OS: ${state.info.operatingSystem}

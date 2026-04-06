@@ -1,6 +1,6 @@
 # Security Policy
 
-Wiki.js is built with security in mind. We try our absolute best to deliver secure and robust applications. However, like any software, there can be security bugs, either introduced by an update or by using an attack vector that wasn't considered when designing the software.
+CloudWiki is built with security in mind. We try our absolute best to deliver secure and robust applications. However, like any software, there can be security bugs, either introduced by an update or by using an attack vector that wasn't considered when designing the software.
 
 If you find such vulnerability, it's important to disclose it in a quick and secure manner to the developers. Follow the instructions below to report a vulnerability.
 
@@ -18,14 +18,14 @@ If you find such vulnerability, it's important to disclose it in a quick and sec
 
 ### A) Disclose on Huntr.dev
 
-Disclose the vulnerability on [Huntr.dev](https://huntr.dev/bounties/disclose) for the repository `https://github.com/Requarks/wiki`.
+Disclose the vulnerability on [Huntr.dev](https://huntr.dev/bounties/disclose) for the repository `https://github.com/gmowses/cloudwiki`.
 
 ### B) Send an email
 
-Send an email to security@requarks.io.
+Send an email to security@cloudface.tech.
 
 Include as much details as possible, such as:
-- The version(s) of Wiki.js that are impacted
+- The version(s) of CloudWiki that are impacted
 - How to reproduce the vulnerability (step-by-step, screenshots or a video)
 - The platform / environment it occurs on (e.g. OS version, DB type + version, etc.)
 - Any potential fixes or reference code you think might be helpful in resolving the issue

@@ -6,9 +6,9 @@
     <meta name="format-detection" content="telephone=no">
     <meta name="msapplication-tap-highlight" content="no">
     <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
-    <title>Wiki.js</title>
+    <title>CloudWiki</title>
     <!--preload-links-->
-    <link href="/_assets/fonts/roboto/roboto.css" rel="stylesheet" />
+    <!-- Inter font loaded via @font-face in _base.scss -->
     <style type="text/css">
       @keyframes initspinner {
         to { transform: rotate(360deg); }
@@ -40,7 +40,7 @@
         margin-top: -25px;
         margin-left: -25px;
         border-radius: 50%;
-        border-top: 2px solid #1976D2;
+        border-top: 2px solid #00C2FF;
         border-right: 2px solid transparent;
         animation: initspinner .6s linear infinite;
         z-index: 2000000000;
@@ -67,7 +67,7 @@
       </style>
     </noscript>
   </head>
-  <body class="wiki-root">
+  <body class="cloudwiki-root">
     <div class="init-loading"></div>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>

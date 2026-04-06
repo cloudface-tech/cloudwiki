@@ -130,8 +130,8 @@ q-page.admin-dashboard
         rounded
         )
         i.las.la-check.q-mr-sm
-        span.text-weight-medium(v-if='adminStore.isVersionLatest') Your Wiki.js server is running the latest version!
-        span.text-weight-medium(v-else) A new version of Wiki.js is available. Please update to the latest version.
+        span.text-weight-medium(v-if='adminStore.isVersionLatest') Your CloudWiki server is running the latest version!
+        span.text-weight-medium(v-else) A new version of CloudWiki is available. Please update to the latest version.
         template(#action, v-if='userStore.can(`manage:system`)')
           q-btn(
             flat

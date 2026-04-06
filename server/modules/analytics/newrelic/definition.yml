@@ -1,7 +1,7 @@
 key: newrelic
 title: New Relic Browser
 description: New Relic Browser provides deep visibility and insight into how your users are interacting with your application or website.
-author: requarks.io
+author: cloudface.tech
 logo: https://static.requarks.io/logo/newrelic.svg
 website: https://newrelic.com/products/browser-monitoring
 isAvailable: true

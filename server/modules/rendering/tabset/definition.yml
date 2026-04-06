@@ -1,6 +1,6 @@
 title: Tabsets
 description: Transform headers into tabs
-author: requarks.io
+author: cloudface.tech
 icon: mdi-tab
 enabledDefault: true
 dependsOn: core

@@ -5,13 +5,13 @@ q-layout.admin(view='hHh Lpr lff')
       q-toolbar(style='height: 64px;', dark)
         q-btn(dense, flat, to='/')
           q-avatar(size='34px', square)
-            img(src='/_assets/logo-wikijs.svg')
-        q-toolbar-title.text-h6 Wiki.js
+            img(src='/_assets/logo-cloudwiki.svg')
+        q-toolbar-title.text-h6 CloudWiki
       q-toolbar.gt-sm.justify-center(style='height: 64px;', dark)
         .text-overline.text-uppercase.text-grey {{ t('admin.adminArea') }}
         q-badge.q-ml-sm(
           label='beta'
-          color='pink'
+          color='secondary'
           outline
           )
       q-toolbar(style='height: 64px;', dark)
@@ -22,7 +22,7 @@ q-layout.admin(view='hHh Lpr lff')
             color='accent'
             size='24px'
           )
-        q-btn.q-ml-md(flat, dense, icon='las la-times-circle', :label='t(`common.actions.exit`)' color='pink', to='/')
+        q-btn.q-ml-md(flat, dense, icon='las la-times-circle', :label='t(`common.actions.exit`)' color='grey-5', to='/')
         q-btn.q-ml-md(flat, dense, icon='las la-language', :label='commonStore.locale' color='grey-4')
           q-menu.translucent-menu(auto-close, anchor='bottom right', self='top right')
             q-list(separator, padding)
@@ -45,18 +45,6 @@ q-layout.admin(view='hHh Lpr lff')
       :bar-style='barStyle'
       )
       q-list.text-white.q-pb-lg(padding, dense)
-        q-item.q-mb-sm
-          q-item-section
-            q-btn.acrylic-btn(
-              flat
-              color='pink'
-              icon='las la-heart'
-              :label='t(`admin.contribute.title`)'
-              no-caps
-              href='https://js.wiki/donate'
-              target='_blank'
-              type='a'
-            )
         q-item(to='/_admin/dashboard', v-ripple, active-class='bg-primary text-white')
           q-item-section(avatar)
             q-icon(name='img:/_assets/icons/fluent-apps-tab.svg')
@@ -295,7 +283,7 @@ const { t } = useI18n()
 // META
 
 useMeta({
-  titleTemplate: title => `${title} - ${t('admin.adminArea')} - Wiki.js`
+  titleTemplate: title => `${title} - ${t('admin.adminArea')} - CloudWiki`
 })
 
 // DATA

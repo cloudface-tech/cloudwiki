@@ -33,7 +33,7 @@ module.exports = {
       WIKI.logger.info(`(LETSENCRYPT) Initializing Let's Encrypt client...`)
       this.acme = ACME.create({
         maintainerEmail: WIKI.config.maintainerEmail,
-        packageAgent: `wikijs/${WIKI.version}`,
+        packageAgent: `cloudwiki/${WIKI.version}`,
         notify: (ev, msg) => {
           if (_.includes(['warning', 'error'], ev)) {
             WIKI.logger.warn(`${ev}: ${msg}`)

@@ -62,7 +62,7 @@ export class ApiKey extends Model {
       algorithm: 'RS256',
       expiresIn: expiration,
       audience: WIKI.config.auth.audience,
-      issuer: 'urn:wiki.js'
+      issuer: 'urn:cloudwiki'
     })
 
     await WIKI.db.apiKeys.query().findById(entry.id).patch({

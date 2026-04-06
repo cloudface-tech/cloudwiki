@@ -95,9 +95,9 @@ export default {
         // async afterCreate (conn, done) {
         //   // -> Set Connection App Name
         //   if (workerMode) {
-        //     await conn.query(`set application_name = 'Wiki.js - ${WIKI.INSTANCE_ID}'`)
+        //     await conn.query(`set application_name = 'CloudWiki - ${WIKI.INSTANCE_ID}'`)
         //   } else {
-        //     await conn.query(`set application_name = 'Wiki.js - ${WIKI.INSTANCE_ID}:MAIN'`)
+        //     await conn.query(`set application_name = 'CloudWiki - ${WIKI.INSTANCE_ID}:MAIN'`)
         //   }
         //   done()
         // }
@@ -120,7 +120,7 @@ export default {
     this.VERSION = dbVersion.version
     this.LEGACY = dbVersion.major < 16
     if (dbVersion.major < 12) {
-      WIKI.logger.error(`Your PostgreSQL database version (${dbVersion.major}) is too old and unsupported by Wiki.js. Requires >= 12. Exiting...`)
+      WIKI.logger.error(`Your PostgreSQL database version (${dbVersion.major}) is too old and unsupported by CloudWiki. Requires >= 12. Exiting...`)
       process.exit(1)
     }
     WIKI.logger.info(`PostgreSQL ${dbVersion.version} [ ${this.LEGACY ? 'LEGACY MODE' : 'OK'} ]`)
@@ -142,14 +142,14 @@ export default {
   async subscribeToNotifications () {
     let connSettings = this.knex.client.connectionSettings
     if (typeof connSettings === 'string') {
-      const encodedName = encodeURIComponent(`Wiki.js - ${WIKI.INSTANCE_ID}:PSUB`)
+      const encodedName = encodeURIComponent(`CloudWiki - ${WIKI.INSTANCE_ID}:PSUB`)
       if (connSettings.indexOf('?') > 0) {
         connSettings = `${connSettings}&ApplicationName=${encodedName}`
       } else {
         connSettings = `${connSettings}?ApplicationName=${encodedName}`
       }
     } else {
-      connSettings.application_name = `Wiki.js - ${WIKI.INSTANCE_ID}:PSUB`
+      connSettings.application_name = `CloudWiki - ${WIKI.INSTANCE_ID}:PSUB`
     }
     this.listener = new PGPubSub(connSettings, {
       log (ev) {

@@ -72,7 +72,7 @@ q-card.icon-picker(flat, style='width: 400px')
               size='64px'
             )
         .col
-          .text-caption Learn how to #[a(href='https://docs.requarks.io') use icons].
+          .text-caption Learn how to #[a(href='https://wiki.cloudface.tech/docs') use icons].
           .text-caption.q-mt-sm View #[a(:href='iconPackRefWebsite', target='_blank') Icon Pack reference] for all possible options.
     q-tab-panel(name='img')
       .row.q-gutter-sm

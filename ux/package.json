@@ -1,9 +1,9 @@
 {
-  "name": "wiki-ux",
+  "name": "cloudwiki-ux",
   "version": "3.0.0",
-  "description": "The most powerful and extensible open source Wiki software",
-  "productName": "Wiki.js",
-  "author": "Nicolas Giard <nick@requarks.io>",
+  "description": "Open-source knowledge platform by CloudFace",
+  "productName": "CloudWiki",
+  "author": "Gabriel Mowses <gabriel@cloudface.tech>",
   "private": true,
   "type": "module",
   "scripts": {

@@ -29,9 +29,9 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
 home: https://wiki.js.org
-icon: https://cdn.js.wiki/images/wikijs-butterfly.svg
+icon: https://cdn.wiki.cloudface.tech/images/cloudwiki-butterfly.svg
 sources:
-  - https://github.com/Requarks/wiki
+  - https://github.com/CloudFace/wiki
 maintainers:
   - name: Nicolas Giard
     email: github@ngpixel.com

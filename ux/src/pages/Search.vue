@@ -218,7 +218,7 @@ const { t } = useI18n()
 // META
 
 useMeta({
-  titleTemplate: title => `${title} - ${t('profile.title')} - Wiki.js`
+  titleTemplate: title => `${title} - ${t('profile.title')} - CloudWiki`
 })
 
 // DATA

@@ -1,0 +1,67 @@
+name: Bug Report
+description: Report a bug or unexpected behavior
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a bug. Please fill in the details below so we can investigate.
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of the bug
+      placeholder: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this?
+      placeholder: |
+        1. Go to...
+        2. Click on...
+        3. See error...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CloudWiki version
+      placeholder: e.g., 3.0.0
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Deployment method
+      options:
+        - Docker
+        - Docker Compose
+        - Kubernetes / Helm
+        - Manual (Node.js)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: Paste any error messages, console output, or attach screenshots
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, database version, etc.
+      placeholder: |
+        - Browser: Chrome 120
+        - OS: Ubuntu 24.04
+        - PostgreSQL: 17

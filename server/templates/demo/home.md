@@ -17,11 +17,11 @@ Feel free to modify this page (or delete it!).
 
 How do permissions work? How can I make my wiki publicly accessible?
 
-It's all [in the docs](https://beta.js.wiki/docs/admin/groups)!
+It's all [in the docs](https://beta.wiki.cloudface.tech/docs/admin/groups)!
 
 ## Example Blocks
 
-Did you know that you can insert dynamic [blocks](https://beta.js.wiki/docs/editor/blocks)?
+Did you know that you can insert dynamic [blocks](https://beta.wiki.cloudface.tech/docs/editor/blocks)?
 
 For example, here are the 5 most recently updated pages on your wiki:
 

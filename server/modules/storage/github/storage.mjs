@@ -16,7 +16,7 @@ export default {
         // --------------------------------------------
         case 'connect': {
           const gh = new Octokit({
-            userAgent: 'wikijs'
+            userAgent: 'cloudwiki'
           })
           const resp = await gh.request('POST /app-manifests/{code}/conversions', {
             code: state.code
@@ -62,7 +62,7 @@ export default {
             appId: tgt.config.appId,
             privateKey: tgt.config.appPem,
             Octokit: Octokit.defaults({
-              userAgent: 'wikijs'
+              userAgent: 'cloudwiki'
             }),
             oauth: {
               clientId: tgt.config.appClientId,
@@ -157,7 +157,7 @@ export default {
         appId: tgt.config.appId,
         privateKey: tgt.config.appPem,
         Octokit: Octokit.defaults({
-          userAgent: 'wikijs'
+          userAgent: 'cloudwiki'
         }),
         oauth: {
           clientId: tgt.config.appClientId,

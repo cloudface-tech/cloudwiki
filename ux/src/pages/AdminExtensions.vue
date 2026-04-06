@@ -82,7 +82,7 @@ q-page.admin-extensions
                     color='indigo'
                     outline
                     type='a'
-                    :href='`https://docs.js.wiki/admin/extensions/` + ext.key'
+                    :href='`https://docs.wiki.cloudface.tech/admin/extensions/` + ext.key'
                     target='_blank'
                     no-caps
                     )

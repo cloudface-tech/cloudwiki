@@ -10,7 +10,7 @@ import { initializeI18n } from './boot/i18n'
 import quasarIconSet from 'quasar/icon-set/mdi-v7'
 
 // Import icon libraries
-import '@quasar/extras/roboto-font/roboto-font.css'
+// Inter font loaded via @font-face in _base.scss (self-hosted)
 import '@mdi/font/css/materialdesignicons.css'
 import '@quasar/extras/line-awesome/line-awesome.css'
 
@@ -44,8 +44,8 @@ app.use(Quasar, {
   iconSet: quasarIconSet,
   config: {
     brand: {
-      header: '#000',
-      sidebar: '#1976D2'
+      header: '#101B37',
+      sidebar: '#101B37'
     },
     loading: {
       delay: 500,

@@ -64,7 +64,7 @@ export const useSiteStore = defineStore('site', {
     },
     sideDialogShown: false,
     sideDialogComponent: '',
-    docsBase: 'https://beta.js.wiki/docs',
+    docsBase: 'https://wiki.cloudface.tech/docs',
     nav: {
       currentId: null,
       items: []

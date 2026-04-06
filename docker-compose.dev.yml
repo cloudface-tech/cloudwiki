@@ -5,11 +5,11 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: wikijs
-      POSTGRES_USER: wikijs
-      POSTGRES_DB: wikijs
+      POSTGRES_PASSWORD: cloudwiki
+      POSTGRES_USER: cloudwiki
+      POSTGRES_DB: cloudwiki
     volumes:
-      - wikijs-dev-data:/var/lib/postgresql/data
+      - cloudwiki-dev-data:/var/lib/postgresql/data
 
 volumes:
-  wikijs-dev-data:
+  cloudwiki-dev-data:

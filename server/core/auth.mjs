@@ -68,7 +68,7 @@ export default {
         jwtFromRequest: extractJWT,
         secretOrKey: WIKI.config.auth.certs.public,
         audience: WIKI.config.auth.audience,
-        issuer: 'urn:wiki.js',
+        issuer: 'urn:cloudwiki',
         algorithms: ['RS256']
       }, (jwtPayload, cb) => {
         cb(null, jwtPayload)

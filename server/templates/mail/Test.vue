@@ -1,16 +1,16 @@
 <template>
   <EHtml lang="en">
     <EHead />
-    <EPreview>This is a test email sent from your Wiki.js installation.</EPreview>
+    <EPreview>This is a test email sent from your CloudWiki installation.</EPreview>
     <EBody :style="main">
       <EContainer :style="container">
         <ESection :style="box">
-          <img src="https://static.requarks.io/logo/wikijs-full.svg" height="50" alt="Wiki.js" />
+          <img src="https://static.cloudface.tech/logo/cloudwiki-full.svg" height="50" alt="CloudWiki" />
           <EHr :style="hr" />
           <EText :style="paragraph"> Hello there! </EText>
-          <EText :style="paragraph"> This is a test email sent from your Wiki.js installation. </EText>
+          <EText :style="paragraph"> This is a test email sent from your CloudWiki installation. </EText>
           <EHr :style="hr" />
-          <EText :style="footer"> Wiki.js, an open source project. </EText>
+          <EText :style="footer"> CloudWiki, an open source project. </EText>
         </ESection>
       </EContainer>
     </EBody>

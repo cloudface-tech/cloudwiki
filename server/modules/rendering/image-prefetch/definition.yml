@@ -1,6 +1,6 @@
 title: Image Prefetch
 description: Prefetch remotely rendered images (korki/plantuml)
-author: requarks.io
+author: cloudface.tech
 icon: mdi-cloud-download-outline
 enabledDefault: false
 dependsOn: core

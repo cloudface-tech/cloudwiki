@@ -1,6 +1,6 @@
 title: Media Players
 description: Embed players such as Youtube, Vimeo, Soundcloud, etc.
-author: requarks.io
+author: cloudface.tech
 icon: mdi-video
 enabledDefault: true
 dependsOn: core

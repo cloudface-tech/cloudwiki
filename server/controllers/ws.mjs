@@ -10,7 +10,7 @@ export default function () {
     const listeners = {}
 
     socket.on('server:logs', () => {
-      socket.emit('server:log', chalk.greenBright(`Streaming logs from ${chalk.bold('Wiki.js')} instance ${chalk.yellowBright.bold(WIKI.INSTANCE_ID)} on host ${chalk.yellowBright.bold(os.hostname())}...`))
+      socket.emit('server:log', chalk.greenBright(`Streaming logs from ${chalk.bold('CloudWiki')} instance ${chalk.yellowBright.bold(WIKI.INSTANCE_ID)} on host ${chalk.yellowBright.bold(os.hostname())}...`))
       listeners.serverLogs = (msg) => {
         socket.emit('server:log', msg)
       }

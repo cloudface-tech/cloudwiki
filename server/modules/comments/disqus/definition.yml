@@ -1,7 +1,7 @@
 key: disqus
 title: Disqus
 description: Disqus help publishers power online discussions with comments.
-author: requarks.io
+author: cloudface.tech
 logo: https://static.requarks.io/logo/disqus.svg
 website: https://disqus.com/
 codeTemplate: true
