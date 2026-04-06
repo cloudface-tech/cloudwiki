@@ -72,7 +72,7 @@
     "dependency-graph": "1.0.0",
     "diff": "8.0.2",
     "diff2html": "3.4.52",
-    "dompurify": "3.2.6",
+    "dompurify": "3.3.3",
     "dotize": "0.6.0",
     "emoji-regex": "10.4.0",
     "eventemitter2": "6.4.9",
