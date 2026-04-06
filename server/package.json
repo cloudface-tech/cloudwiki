@@ -61,7 +61,7 @@
     "bcryptjs": "3.0.2",
     "chalk": "5.4.1",
     "cheerio": "1.1.2",
-    "chokidar": "4.0.3",
+    "chokidar": "5.0.0",
     "chromium-pickle-js": "0.2.0",
     "clean-css": "5.3.3",
     "command-exists": "1.2.9",
