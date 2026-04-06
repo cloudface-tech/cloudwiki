@@ -20,6 +20,64 @@ export default function () {
   })
 
   /**
+   * llms.txt — AI-readable site index
+   */
+  router.get('/llms.txt', async (req, res, next) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).end()
+
+      const pages = await WIKI.db.knex('pages')
+        .where({ siteId: site.id, publishState: 'published' })
+        .select('path', 'title', 'description', 'updatedAt')
+        .orderBy('path')
+
+      const baseUrl = `${req.protocol}://${req.hostname}`
+      let output = `# ${site.config.title || 'CloudWiki'}\n\n`
+      output += `> ${site.config.description || 'Open-source knowledge platform'}\n\n`
+
+      for (const page of pages) {
+        output += `- [${page.title}](${baseUrl}/${page.path}): ${page.description || ''}\n`
+      }
+
+      res.type('text/plain; charset=utf-8').send(output)
+    } catch (err) {
+      WIKI.logger.warn(`llms.txt generation failed: ${err.message}`)
+      res.status(500).end()
+    }
+  })
+
+  /**
+   * llms-full.txt — Full wiki content for AI context
+   */
+  router.get('/llms-full.txt', async (req, res, next) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).end()
+
+      const pages = await WIKI.db.knex('pages')
+        .where({ siteId: site.id, publishState: 'published' })
+        .select('path', 'title', 'description', 'content')
+        .orderBy('path')
+
+      let output = `# ${site.config.title || 'CloudWiki'}\n\n`
+      output += `> ${site.config.description || 'Open-source knowledge platform'}\n\n`
+      output += `---\n\n`
+
+      for (const page of pages) {
+        output += `# ${page.title}\n\n`
+        if (page.description) output += `> ${page.description}\n\n`
+        output += `${page.content}\n\n---\n\n`
+      }
+
+      res.type('text/plain; charset=utf-8').send(output)
+    } catch (err) {
+      WIKI.logger.warn(`llms-full.txt generation failed: ${err.message}`)
+      res.status(500).end()
+    }
+  })
+
+  /**
    * Health Endpoint
    */
   router.get('/healthz', (req, res, next) => {
