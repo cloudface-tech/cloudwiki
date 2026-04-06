@@ -183,12 +183,28 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for more details.
 
 ## Roadmap
 
-- [ ] Plugin marketplace
+### Now
+
+- [ ] Deploy to wiki.cloudface.tech (production)
+- [ ] Upgrade TipTap editor to v3 (major version migration)
+- [ ] Dark/light theme toggle on login page
+
+### Next
+
 - [ ] PDF export
-- [ ] Diagram editor (Mermaid, Draw.io)
-- [ ] Webhooks and automation
+- [ ] Portuguese (pt-BR) full translation
+- [ ] Landing page with live demo
+- [ ] GitHub Sponsors setup
+- [ ] Diagram editor (Mermaid integrated in WYSIWYG)
+
+### Later
+
+- [ ] AI-powered semantic search (embeddings)
+- [ ] Mobile-optimized PWA reader
+- [ ] Webhooks and automation (n8n, Zapier)
+- [ ] Plugin marketplace
 - [ ] Advanced permissions (per-page ACLs)
-- [ ] Mobile-optimized reader
+- [ ] Custom themes and layout builder
 
 Have an idea? Open a [discussion](https://github.com/cloudface-tech/cloudwiki/discussions).
 
