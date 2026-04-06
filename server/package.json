@@ -94,7 +94,7 @@
     "image-size": "2.0.2",
     "js-base64": "3.7.7",
     "js-binary": "1.2.0",
-    "js-yaml": "4.1.0",
+    "js-yaml": "4.1.1",
     "jsdom": "26.1.0",
     "jsonwebtoken": "9.0.2",
     "katex": "0.16.22",
