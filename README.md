@@ -191,7 +191,6 @@ See [CONTRIBUTING.md](.github/CONTRIBUTING.md) for full guidelines.
 
 ### Next
 
-- [ ] **MCP Server** -- expose wiki content to Claude, Cursor, and AI agents natively
 - [ ] TipTap v3 migration
 - [ ] PDF export
 - [ ] Mermaid diagram editor in WYSIWYG
