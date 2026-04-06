@@ -45,7 +45,7 @@
     "@hexagon/base64": "2.0.4",
     "@hocuspocus/extension-database": "3.4.4",
     "@hocuspocus/server": "3.4.4",
-    "@joplin/turndown-plugin-gfm": "1.0.62",
+    "@joplin/turndown-plugin-gfm": "1.0.64",
     "@node-saml/passport-saml": "5.1.0",
     "@root/csr": "0.8.1",
     "@root/keypairs": "0.10.3",
