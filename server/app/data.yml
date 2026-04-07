@@ -74,6 +74,13 @@ defaults:
       experimental: false
       authDebug: false
       sqlLog: false
+    search:
+      dictOverrides: {}
+      termHighlighting: true
+      embeddingModel: multilingual-e5-small
+      openaiApiKey: ''
+      keywordWeight: 0.6
+      vectorWeight: 0.4
     userDefaults:
       timezone: 'America/New_York'
       dateFormat: 'YYYY-MM-DD'

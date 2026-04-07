@@ -2,6 +2,8 @@ import _ from 'lodash-es'
 import { generateError, generateSuccess } from '../../helpers/graph.mjs'
 import { parsePath } from '../../helpers/page.mjs'
 import tsquery from 'pg-tsquery'
+import { generateEmbedding } from '../../modules/search/embeddings.mjs'
+import { blendScores } from '../../modules/search/hybridSearch.mjs'
 
 const tsq = tsquery()
 const tagsInQueryRgx = /#[a-z0-9-\u3400-\u4DBF\u4E00-\u9FFF]+(?=(?:[^"]*(?:")[^"]*(?:"))*[^"]*$)/g
@@ -89,6 +91,27 @@ export default {
           searchCols.push(WIKI.db.knex.raw('ts_headline(?, "searchContent", query, \'MaxWords=5, MinWords=3, MaxFragments=5\') AS highlight', [dictName]))
         }
 
+        // -> Determine search mode and generate query embedding
+        const searchMode = args.searchMode || (WIKI.config.search?.embeddingModel ? 'hybrid' : 'keyword')
+        let queryEmbedding = null
+
+        if (searchMode !== 'keyword' && hasQuery) {
+          try {
+            queryEmbedding = await generateEmbedding(
+              q,
+              WIKI.config.search?.embeddingModel || 'multilingual-e5-small',
+              WIKI.config.search?.openaiApiKey || ''
+            )
+            const embeddingStr = `[${queryEmbedding.join(',')}]`
+            searchCols.push(WIKI.db.knex.raw(
+              '1 - (embedding <=> ?::vector) AS "vectorScore"',
+              [embeddingStr]
+            ))
+          } catch (err) {
+            WIKI.logger.warn(`[Search] Embedding generation failed, falling back to keyword: ${err.message}`)
+          }
+        }
+
         const results = await WIKI.db.knex
           .select(searchCols)
           .fromRaw(hasQuery ? 'pages, to_tsquery(?, ?) query' : 'pages', hasQuery ? [dictName, tsq(q)] : [])
@@ -117,6 +140,23 @@ export default {
           .orderBy(args.orderBy || 'relevancy', args.orderByDirection || 'desc')
           .offset(args.offset || 0)
           .limit(args.limit || 25)
+
+        // -> Apply hybrid blend scoring
+        if (queryEmbedding && results.length > 0) {
+          const kw = WIKI.config.search?.keywordWeight ?? 0.6
+          const vw = WIKI.config.search?.vectorWeight ?? 0.4
+          const blended = blendScores(
+            results.map(r => ({
+              ...r,
+              ftsScore: r.relevancy || 0,
+              vectorScore: r.vectorScore || 0
+            })),
+            kw,
+            vw
+          )
+          results.length = 0
+          results.push(...blended)
+        }
 
         // -> Remove highlights without matches
         if (WIKI.config.search.termHighlighting && hasQuery) {

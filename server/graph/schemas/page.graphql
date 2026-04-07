@@ -48,6 +48,10 @@ extend type Query {
     """
     publishState: PagePublishState
     """
+    Search mode: keyword, hybrid, or vector. Defaults to hybrid when embeddings available.
+    """
+    searchMode: PageSearchMode
+    """
     Result ordering. Defaults to relevancy.
     """
     orderBy: PageSearchSort
@@ -464,6 +468,12 @@ enum PagePublishState {
   draft
   published
   scheduled
+}
+
+enum PageSearchMode {
+  keyword
+  hybrid
+  vector
 }
 
 enum PageRelationPosition {
