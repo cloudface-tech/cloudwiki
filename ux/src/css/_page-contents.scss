@@ -588,13 +588,15 @@
   // ---------------------------------
 
   .mermaid-rendered {
-    margin: 1.5rem 0;
+    margin: 2rem 0;
     text-align: center;
     overflow-x: auto;
 
     svg {
-      max-width: 100%;
-      height: auto;
+      width: 100% !important;
+      min-height: 500px;
+      height: auto !important;
+      max-height: none !important;
     }
   }
 
