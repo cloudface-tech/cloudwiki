@@ -4,14 +4,24 @@
  */
 
 export async function up (knex) {
-  // Enable pgvector — may fail on managed DB (RDS) without superuser perms
+  // Check if pgvector is available (may not be on managed DB without superuser)
+  let hasVector = false
   try {
-    await knex.raw('CREATE EXTENSION IF NOT EXISTS vector')
-    console.info('[3.0.2] pgvector extension enabled')
-  } catch (err) {
-    console.warn(`[3.0.2] Could not create vector extension (${err.message}). Semantic search will be unavailable until pgvector is enabled by a DB admin.`)
-    return
+    const result = await knex.raw("SELECT 1 FROM pg_extension WHERE extname = 'vector'")
+    hasVector = result.rows?.length > 0
+  } catch { /* ignore */ }
+
+  if (!hasVector) {
+    try {
+      await knex.raw('CREATE EXTENSION IF NOT EXISTS vector')
+      hasVector = true
+      console.info('[3.0.2] pgvector extension enabled')
+    } catch (err) {
+      console.warn(`[3.0.2] pgvector not available (${err.code}). Semantic search disabled until a DB admin runs: CREATE EXTENSION vector;`)
+    }
   }
+
+  if (!hasVector) return
 
   const hasEmbedding = await knex.schema.hasColumn('pages', 'embedding')
   if (!hasEmbedding) {
