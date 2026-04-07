@@ -103,10 +103,29 @@ watch(() => route.path, async (newValue) => {
   try {
     await pageStore.pageLoad({ path: newValue })
     if (editorStore.isActive) { editorStore.$patch({ isActive: false }) }
-    nextTick(() => {
+    nextTick(async () => {
       if (pageContents.value) {
         for (const block of pageContents.value.querySelectorAll(':not(:defined)')) {
           commonStore.loadBlocks([block.tagName.toLowerCase()])
+        }
+        // Render Mermaid diagrams
+        const mermaidBlocks = pageContents.value.querySelectorAll('pre.codeblock-mermaid')
+        if (mermaidBlocks.length > 0) {
+          const mermaid = (await import('mermaid')).default
+          mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose' })
+          for (const [idx, block] of mermaidBlocks.entries()) {
+            const code = block.querySelector('code')?.textContent || ''
+            if (!code.trim()) continue
+            try {
+              const { svg } = await mermaid.render(`mermaid-page-${idx}`, code)
+              const wrapper = document.createElement('div')
+              wrapper.className = 'mermaid-rendered'
+              wrapper.innerHTML = svg
+              block.replaceWith(wrapper)
+            } catch {
+              // Leave as code block if syntax is invalid
+            }
+          }
         }
       }
     })
