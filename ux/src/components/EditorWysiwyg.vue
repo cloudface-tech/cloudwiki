@@ -70,6 +70,7 @@
         :aria-label='menuItem.title'
         :disabled='menuItem.disabled && menuItem.disabled()'
         )
+    DiagramToolbarMenu(@insert='insertDiagram')
     //- q-space
     //- q-btn(
     //-   size='sm'
@@ -111,6 +112,10 @@ import { common, createLowlight } from 'lowlight'
 import { onBeforeUnmount, onMounted, reactive, shallowRef } from 'vue'
 import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
+
+import { MermaidExtension } from './editor/MermaidExtension.js'
+import { ExcalidrawExtension } from './editor/ExcalidrawExtension.js'
+import DiagramToolbarMenu from './editor/DiagramToolbarMenu.vue'
 
 import { useMeta, useQuasar, setCssVar } from 'quasar'
 import { useI18n } from 'vue-i18n'
@@ -769,7 +774,9 @@ function init () {
       TaskItem,
       TextAlign,
       TextStyle,
-      Typography
+      Typography,
+      MermaidExtension,
+      ExcalidrawExtension
     ],
     onCreate: ({ editor }) => {
       // Ensure content is populated on editor creation
@@ -794,6 +801,13 @@ function init () {
 
 function insertTable () {
   // this.ql.getModule('table').insertTable(3, 3)
+}
+function insertDiagram (type) {
+  if (type === 'mermaid') {
+    editor.chain().focus().insertContent({ type: 'mermaidBlock' }).run()
+  } else if (type === 'excalidraw') {
+    editor.chain().focus().insertContent({ type: 'excalidrawBlock' }).run()
+  }
 }
 function snapshot () {
   // console.info(Y.encodeStateVector(this.ydoc))
