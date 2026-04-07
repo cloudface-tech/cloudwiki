@@ -1,0 +1,24 @@
+# Configuration for probot-stale - https://github.com/probot/stale
+
+daysUntilStale: 60
+daysUntilClose: 14
+
+exemptLabels:
+  - pinned
+  - security
+  - bug
+  - good first issue
+  - help wanted
+
+staleLabel: stale
+
+markComment: >
+  This issue has been automatically marked as stale because it has not had
+  recent activity. It will be closed in 14 days if no further activity occurs.
+  If this issue is still relevant, please leave a comment or remove the stale label.
+
+closeComment: >
+  This issue was closed because it has been inactive for 74 days.
+  Feel free to reopen if the issue persists.
+
+limitPerRun: 30

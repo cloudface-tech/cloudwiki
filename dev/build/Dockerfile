@@ -1,0 +1,75 @@
+FROM node:24
+LABEL maintainer="gabriel@cloudface.tech"
+
+RUN apt-get update && apt-get install -qy --no-install-recommends \
+    bash \
+    build-essential \
+    curl \
+    git \
+    gnupg \
+    openssh-client \
+    pandoc \
+    && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /wiki && \
+    mkdir -p /logs && \
+    mkdir -p /wiki/data/content && \
+    chown -R node:node /wiki /logs
+RUN corepack enable && \
+    corepack prepare pnpm@latest --activate
+
+WORKDIR /wiki
+
+COPY --chown=node:node ./assets ./assets
+COPY --chown=node:node ./blocks/compiled ./blocks/compiled
+COPY --chown=node:node ./server ./server
+COPY --chown=node:node ./dev/build/config.yml ./config.yml
+COPY --chown=node:node ./LICENSE ./LICENSE
+COPY --chown=node:node ./dev/build/entrypoint.sh ./entrypoint.sh
+RUN chmod +x ./entrypoint.sh
+
+# Inject mermaid.js and Inter font into index.html
+RUN sed -i 's|</head>|<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700\&display=swap" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script><script>document.addEventListener("DOMContentLoaded",function(){mermaid.initialize({startOnLoad:false,theme:"default"});new MutationObserver(function(){document.querySelectorAll(".codeblock-mermaid:not([data-processed])").forEach(function(el){el.setAttribute("data-processed","1");var code=el.querySelector("code");if(code){var d=document.createElement("div");d.className="mermaid";d.textContent=code.textContent;el.replaceWith(d)}});try{mermaid.run({querySelector:".mermaid:not([data-id])"})}catch(e){}}).observe(document.body,{childList:true,subtree:true})});</script></head>|' ./assets/index.html
+
+# NOTE: data/assets is created by entrypoint.sh as node user, NOT here as root
+
+# Fix CJS modules: rename .js to .cjs and create ESM wrappers with 3-arg adapter
+RUN find ./server/modules/authentication -name "authentication.js" -exec sh -c \
+    'mv "{}" "$(dirname {})"/authentication.cjs && printf "import{createRequire}from\"module\";const require=createRequire(import.meta.url);const m=require(\"./authentication.cjs\");const w={...m,init(p,id,c){return m.init(p,{...c,key:id})}};export default w;\n" > "$(dirname {})"/authentication.mjs' \; && \
+    find ./server/modules/storage -name "storage.js" -exec sh -c \
+    'mv "{}" "$(dirname {})"/storage.cjs && printf "import{createRequire}from\"module\";const require=createRequire(import.meta.url);const m=require(\"./storage.cjs\");export default m;\n" > "$(dirname {})"/storage.mjs' \;
+
+# Create stub for missing asset helper (removed in v3)
+RUN echo 'export default {}' > ./server/helpers/asset.mjs
+
+# Rename CJS helper files in storage that aren't storage.js
+RUN find ./server/modules/storage -name "common.js" -exec sh -c 'mv "{}" "$(dirname {})"/common.cjs' \;
+
+# Fix CJS storage requires: add .mjs extension to helper imports
+RUN find ./server/modules/storage -name "*.cjs" -exec sed -i \
+    -e "s|require('../../../helpers/page.js')|require('../../../helpers/page.mjs')|g" \
+    -e "s|require('../../../helpers/page')|require('../../../helpers/page.mjs')|g" \
+    -e "s|require('../../../helpers/asset.js')|require('../../../helpers/asset.mjs')|g" \
+    -e "s|require('../../../helpers/asset')|require('../../../helpers/asset.mjs')|g" \
+    -e "s|require('../../../helpers/common.js')|require('../../../helpers/common.mjs')|g" \
+    -e "s|require('../../../helpers/common')|require('../../../helpers/common.mjs')|g" \
+    -e "s|require('../disk/common')|require('../disk/common.cjs')|g" \
+    {} \;
+
+USER node
+
+ENV NODE_ENV=production
+
+WORKDIR /wiki/server
+RUN pnpm install --prod --frozen-lockfile
+
+# Set extensions as installed
+RUN touch node_modules/sharp/wiki_installed.txt
+
+WORKDIR /wiki
+
+VOLUME ["/wiki/data/content"]
+
+EXPOSE 3000
+EXPOSE 3443
+
+CMD ["./entrypoint.sh"]

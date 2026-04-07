@@ -1,0 +1,7 @@
+title: Blockquotes
+description: Parse blockquotes box styling
+author: cloudface.tech
+icon: mdi-alpha-t-box-outline
+enabledDefault: true
+dependsOn: core
+props: {}

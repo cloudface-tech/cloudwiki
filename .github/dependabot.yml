@@ -1,0 +1,74 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/server"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps):"
+    ignore:
+      # Major version bumps need manual review
+      - dependency-name: "puppeteer-core"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "nodemailer"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "mathjax"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "file-type"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/ux"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps):"
+    ignore:
+      # Tiptap 2.x -> 3.x is a major rewrite
+      - dependency-name: "@tiptap/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@quasar/app-vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@intlify/unplugin-vue-i18n"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "uuid"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/blocks"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "chore(deps):"
+    ignore:
+      - dependency-name: "glob"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "rollup"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@rollup/plugin-terser"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "rollup-plugin-summary"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "chore(ci):"

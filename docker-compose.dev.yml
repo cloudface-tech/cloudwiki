@@ -1,0 +1,15 @@
+services:
+  db:
+    image: postgres:17
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: cloudwiki
+      POSTGRES_USER: cloudwiki
+      POSTGRES_DB: cloudwiki
+    volumes:
+      - cloudwiki-dev-data:/var/lib/postgresql/data
+
+volumes:
+  cloudwiki-dev-data:

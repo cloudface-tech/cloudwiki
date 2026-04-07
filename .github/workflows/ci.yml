@@ -1,0 +1,136 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build-ux:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: ux/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: ux
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: ux
+        run: pnpm build
+
+  build-blocks:
+    name: Build Blocks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: blocks/pnpm-lock.yaml
+
+      - name: Install dependencies
+        working-directory: blocks
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        working-directory: blocks
+        run: pnpm build
+
+  lint-server:
+    name: Lint Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: server/pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: server
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        working-directory: server
+        run: pnpm exec eslint .
+
+  test-server:
+    name: Test Server
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: server/pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: server
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        working-directory: server
+        run: pnpm test
+
+  test-ux:
+    name: Test Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: ux/pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: ux
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        working-directory: ux
+        run: pnpm test
+
+  a11y-audit:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: ux/pnpm-lock.yaml
+      - name: Install dependencies
+        working-directory: ux
+        run: pnpm install --frozen-lockfile
+      - name: Run a11y tests
+        working-directory: ux
+        run: pnpm test -- --reporter=verbose src/__tests__/accessibility/

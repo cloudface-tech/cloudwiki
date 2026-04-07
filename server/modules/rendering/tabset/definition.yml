@@ -1,0 +1,7 @@
+title: Tabsets
+description: Transform headers into tabs
+author: cloudface.tech
+icon: mdi-tab
+enabledDefault: true
+dependsOn: core
+props: {}

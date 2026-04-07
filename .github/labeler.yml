@@ -1,0 +1,44 @@
+# Configuration for actions/labeler
+
+frontend:
+  - changed-files:
+      - any-glob-to-any-file: "ux/**"
+
+backend:
+  - changed-files:
+      - any-glob-to-any-file: "server/**"
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - "dev/build/**"
+          - "docker-compose*.yml"
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/*.md"
+          - "docs/**"
+
+helm:
+  - changed-files:
+      - any-glob-to-any-file: "dev/helm/**"
+
+auth:
+  - changed-files:
+      - any-glob-to-any-file: "server/modules/authentication/**"
+
+storage:
+  - changed-files:
+      - any-glob-to-any-file: "server/modules/storage/**"
+
+theme:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ux/src/css/**"
+          - "ux/src/layouts/**"
+
+i18n:
+  - changed-files:
+      - any-glob-to-any-file: "server/locales/**"

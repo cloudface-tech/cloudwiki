@@ -1,0 +1,67 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.231.6/containers/javascript-node-postgres
+// Update the VARIANT arg in docker-compose.yml to pick a Node.js version
+{
+	"name": "CloudWiki Dev",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      },
+      "extensions": [
+        "arcanis.vscode-zipfs",
+        "dbaeumer.vscode-eslint",
+        "eamodio.gitlens",
+        "Vue.volar",
+        "oderwat.indent-rainbow",
+        "redhat.vscode-yaml",
+        "editorconfig.editorconfig",
+        "lokalise.i18n-ally",
+        "mrmlnc.vscode-duplicate",
+        "mutantdino.resourcemonitor",
+        "wayou.vscode-todo-highlight",
+        "GraphQL.vscode-graphql",
+        "GitHub.copilot"
+      ]
+    }
+  },
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// This can be used to network with other containers or with the host.
+	"forwardPorts": [5432, 8000],
+
+  "portsAttributes": {
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "8000": {
+      "label": "PGAdmin",
+      "onAutoForward": "silent"
+    }
+  },
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	"postCreateCommand": "/docker-init.sh",
+
+	// Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	"remoteUser": "node",
+	"features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+			"installZsh": "true",
+      "installOhMyZsh": "true",
+			"username": "node",
+			"upgradePackages": "true"
+		},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/joedmck/devcontainer-features/cloudflared:1": {}
+	}
+}

@@ -1,0 +1,4 @@
+{$SITE_DOMAIN:wiki.cloudface.tech} {
+    reverse_proxy cloudwiki:3000
+    encode gzip
+}
