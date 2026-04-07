@@ -12,7 +12,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
-    include: ['**/__tests__/**/*.test.js', '**/*.test.js'],
+    include: ['**/__tests__/**/*.test.js', '**/__tests__/**/*.test.mjs', '**/*.test.js', '**/*.test.mjs'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],
