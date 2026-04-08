@@ -242,60 +242,63 @@ export const useSiteStore = defineStore('site', {
       }
     },
     async fetchNavigation (id) {
-      // Load navigation from tree (auto-generated from pages)
-      const siteId = this.id
-      if (!siteId) {
-        console.warn('[Nav] No siteId available, skipping tree load')
-        return
-      }
       try {
         const resp = await APOLLO_CLIENT.query({
           query: gql`
-            query getTreeNav ($siteId: UUID!) {
-              tree (
-                siteId: $siteId
-                types: [folder, page]
-                depth: 10
-                orderBy: title
-                orderByDirection: asc
-                limit: 1000
-              ) {
-                __typename
-                ... on TreeItemFolder {
-                  id
-                  folderPath
-                  fileName
-                  title
-                }
-                ... on TreeItemPage {
-                  id
-                  folderPath
-                  fileName
-                  title
+            query getNavigationItems ($id: UUID!) {
+              navigationById (id: $id) {
+                id type label icon target openInNewWindow
+                children {
+                  id type label icon target openInNewWindow
+                  children {
+                    id type label icon target openInNewWindow
+                    children {
+                      id type label icon target openInNewWindow
+                      children {
+                        id type label icon target openInNewWindow
+                        children {
+                          id type label icon target openInNewWindow
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
           `,
-          variables: { siteId },
-          fetchPolicy: 'network-only'
+          variables: { id }
         })
 
-        const items = resp?.data?.tree ?? []
-        console.info('[Nav] Tree loaded:', items.length, 'items')
-        const navTree = this._buildNavTree(items)
-        console.info('[Nav] Built nav tree:', navTree.length, 'root items', JSON.stringify(navTree.slice(0, 3).map(i => ({ label: i.label, type: i.type, depth: i.depth }))))
+        // Flatten the recursive navigation into a flat list with depth
+        const flatList = []
+        function flatten (items, depth) {
+          for (const item of items) {
+            const hasChildren = item.children && item.children.length > 0
+            if (hasChildren) {
+              flatList.push({ id: item.id, type: 'folder', label: item.label, icon: item.icon, target: item.target, depth })
+              flatten(item.children, depth + 1)
+            } else if (item.type === 'link') {
+              flatList.push({ id: item.id, type: 'link', label: item.label, icon: item.icon, target: item.target, depth })
+            } else if (item.type === 'header') {
+              flatList.push({ id: item.id, type: 'header', label: item.label, depth })
+            } else if (item.type === 'separator') {
+              flatList.push({ id: item.id, type: 'separator', depth })
+            }
+          }
+        }
+        flatten(resp?.data?.navigationById ?? [], 0)
 
         this.$patch({
           nav: {
             currentId: id,
-            items: navTree
+            items: flatList
           }
         })
       } catch (err) {
-        console.error('[Nav] Tree load failed:', err.message, err)
+        console.warn(err.networkError?.result ?? err.message)
       }
     },
-    _buildNavTree (items) {
+    _unused_buildNavTree (items) {
       // Build nested nav from flat tree items using page paths
       // Strategy: use pages only, derive folder structure from paths
       const root = { children: [] }

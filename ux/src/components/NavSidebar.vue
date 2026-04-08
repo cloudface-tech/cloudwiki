@@ -3,8 +3,22 @@
     <q-scroll-area class="sidebar-nav" :thumb-style="thumbStyle" :bar-style="barStyle">
       <q-list class="sidebar-nav-list" clickable dense>
         <template v-for="(item, idx) of allItems" :key="idx">
+          <!-- Header -->
+          <q-item-label
+            v-if="item.type === 'header' && visible[idx]"
+            class="sidebar-nav-header"
+            header
+          >{{ item.label }}</q-item-label>
+
+          <!-- Separator -->
+          <q-separator
+            v-else-if="item.type === 'separator' && visible[idx]"
+            class="sidebar-nav-sep"
+          />
+
+          <!-- Folder -->
           <q-item
-            v-if="item.type === 'folder' && visible[idx]"
+            v-else-if="item.type === 'folder' && visible[idx]"
             clickable
             :style="{ paddingLeft: (12 + item.depth * 16) + 'px' }"
             class="sidebar-nav-folder"
@@ -18,11 +32,15 @@
             </q-item-section>
           </q-item>
 
+          <!-- Link -->
           <q-item
             v-else-if="item.type === 'link' && visible[idx]"
             :to="item.target"
-            :style="{ paddingLeft: (28 + item.depth * 16) + 'px' }"
+            :style="{ paddingLeft: (12 + item.depth * 16) + 'px' }"
           >
+            <q-item-section v-if="item.icon && item.depth === 0" side>
+              <q-icon :name="item.icon" />
+            </q-item-section>
             <q-item-section class="text-wordbreak-all">
               {{ item.label }}
             </q-item-section>
