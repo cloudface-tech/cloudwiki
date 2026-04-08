@@ -2,18 +2,17 @@
   <nav class="sidebar-nav-wrapper" role="navigation">
     <q-scroll-area class="sidebar-nav" :thumb-style="thumbStyle" :bar-style="barStyle">
       <q-list class="sidebar-nav-list" clickable dense>
-        <template v-for="(item, idx) of siteStore.nav.items" :key="item.id || idx">
+        <template v-for="(item, idx) of navItems" :key="item.id || idx">
           <!-- Folder -->
           <q-item
             v-if="item.type === 'folder'"
-            v-show="isVisible(item, idx)"
             clickable
             :style="{ paddingLeft: (12 + item.depth * 16) + 'px' }"
             class="sidebar-nav-folder"
-            @click="toggleFolder(idx)"
+            @click="toggleFolder(item.id)"
           >
             <q-item-section side>
-              <q-icon :name="expanded[idx] ? 'las la-angle-down' : 'las la-angle-right'" size="14px" />
+              <q-icon :name="expandedFolders[item.id] ? 'las la-angle-down' : 'las la-angle-right'" size="14px" />
             </q-item-section>
             <q-item-section class="text-wordbreak-all text-weight-medium">
               {{ item.label }}
@@ -23,9 +22,8 @@
           <!-- Page link -->
           <q-item
             v-else-if="item.type === 'link'"
-            v-show="isVisible(item, idx)"
             :to="item.target"
-            :style="{ paddingLeft: (12 + item.depth * 16) + 'px' }"
+            :style="{ paddingLeft: (28 + item.depth * 16) + 'px' }"
           >
             <q-item-section class="text-wordbreak-all">
               {{ item.label }}
@@ -38,7 +36,7 @@
 </template>
 
 <script setup>
-import { reactive, watch } from 'vue'
+import { reactive, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -50,7 +48,7 @@ const siteStore = useSiteStore()
 const route = useRoute()
 const { t } = useI18n()
 
-const expanded = reactive({})
+const expandedFolders = reactive({})
 
 const thumbStyle = {
   right: '2px',
@@ -65,27 +63,51 @@ const barStyle = {
   opacity: 0.1
 }
 
-function toggleFolder (idx) {
-  expanded[idx] = !expanded[idx]
+function toggleFolder (folderId) {
+  expandedFolders[folderId] = !expandedFolders[folderId]
 }
 
-function isVisible (item, idx) {
-  // Items at depth 0 are always visible
-  if (item.depth === 0) return true
-
-  // Find parent folder — walk backwards to find closest folder with depth = item.depth - 1
-  const items = siteStore.nav.items
-  for (let i = idx - 1; i >= 0; i--) {
-    if (items[i].depth < item.depth) {
-      // This is the parent
-      if (items[i].type === 'folder') {
-        return expanded[i] && isVisible(items[i], i)
+// Build a map of folder ID -> parent folder ID for visibility checks
+const folderParentMap = computed(() => {
+  const map = {}
+  const items = siteStore.nav.items || []
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    if (item.depth === 0) continue
+    // Walk backwards to find parent folder
+    for (let j = i - 1; j >= 0; j--) {
+      if (items[j].type === 'folder' && items[j].depth === item.depth - 1) {
+        map[item.id] = items[j].id
+        break
       }
-      return false
     }
+  }
+  return map
+})
+
+function isFolderExpanded (folderId) {
+  return !!expandedFolders[folderId]
+}
+
+function isItemVisible (item) {
+  if (item.depth === 0) return true
+  // Check all ancestor folders are expanded
+  const parentId = folderParentMap.value[item.id]
+  if (!parentId) return false
+  if (!isFolderExpanded(parentId)) return false
+  // Check parent is also visible (recursive)
+  const items = siteStore.nav.items || []
+  const parentItem = items.find(i => i.id === parentId)
+  if (parentItem && parentItem.depth > 0) {
+    return isItemVisible(parentItem)
   }
   return true
 }
+
+// Filtered visible items
+const navItems = computed(() => {
+  return (siteStore.nav.items || []).filter(item => isItemVisible(item))
+})
 
 watch(() => pageStore.navigationId, (newValue) => {
   if (newValue && newValue !== siteStore.nav.currentId) {
@@ -105,7 +127,7 @@ watch(() => pageStore.navigationId, (newValue) => {
   height: 100%;
 
   &-folder {
-    color: #64748B;
+    color: #475569;
     font-size: 0.825rem;
     min-height: 32px;
 
@@ -116,7 +138,7 @@ watch(() => pageStore.navigationId, (newValue) => {
 
     &:hover {
       background: #F1F5F9;
-      color: #334155;
+      color: #1E293B;
     }
   }
 
