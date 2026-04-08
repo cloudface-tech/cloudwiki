@@ -7,6 +7,7 @@ import { initializeComponents } from './boot/components'
 import { initializeEventBus } from './boot/eventbus'
 import { initializeExternals } from './boot/externals'
 import { initializeI18n } from './boot/i18n'
+import initializePwa from './boot/pwa'
 import quasarIconSet from 'quasar/icon-set/mdi-v7'
 
 // Import icon libraries
@@ -32,6 +33,7 @@ initializeComponents(app)
 initializeEventBus()
 initializeExternals(router, store)
 initializeI18n(app, store)
+initializePwa({ app })
 
 app.use(Quasar, {
   plugins: {
