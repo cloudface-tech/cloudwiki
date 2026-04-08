@@ -9,7 +9,7 @@
 
   <!-- Folder with children (recursive) -->
   <q-expansion-item
-    v-else-if="item.type === 'link' && hasChildren"
+    v-else-if="item.type === 'link' && item.children && item.children.length > 0"
     class="sidebar-nav-expand"
     :icon="item.icon"
     :label="item.label"
@@ -40,18 +40,23 @@
 
 <script>
 import { useRoute } from 'vue-router'
-import { computed } from 'vue'
 
 export default {
   name: 'NavSidebarItem',
+  components: {
+    // Self-reference for recursion — Vue resolves by name
+  },
   props: {
     item: { type: Object, required: true },
     depth: { type: Number, default: 0 }
   },
-  setup (props) {
+  setup () {
     const route = useRoute()
-    const hasChildren = computed(() => props.item.children && props.item.children.length > 0)
-    return { route, hasChildren }
+    return { route }
+  },
+  beforeCreate () {
+    // Register self for recursion
+    this.$options.components['nav-sidebar-item'] = this.$options
   }
 }
 </script>
