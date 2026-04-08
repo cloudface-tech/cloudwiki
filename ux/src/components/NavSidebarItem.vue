@@ -10,30 +10,28 @@ q-separator.sidebar-nav-sep(
   v-else-if='item.type === `separator`'
   )
 
-//- Link with children (recursive)
+//- Folder with children (recursive)
 q-expansion-item.sidebar-nav-expand(
   v-else-if='item.type === `link` && item.children?.length > 0'
   :icon='item.icon'
   :label='item.label'
   :aria-label='item.label'
   dense
-  :style='{ paddingLeft: (depth * 8) + "px" }'
   )
   q-list(clickable, dense)
-    nav-sidebar-item(
+    NavSidebarItem(
       v-for='child of item.children'
       :key='child.id'
       :item='child'
       :depth='depth + 1'
       )
 
-//- Leaf link
+//- Leaf link (page)
 q-item(
   v-else-if='item.type === `link`'
   :to='item.target'
   :aria-label='item.label'
   :aria-current='route.path === item.target ? `page` : undefined'
-  :style='{ paddingLeft: (12 + depth * 12) + "px" }'
   )
   q-item-section(v-if='item.icon && depth === 0', side)
     q-icon(:name='item.icon')
@@ -49,4 +47,10 @@ defineProps({
   item: { type: Object, required: true },
   depth: { type: Number, default: 0 }
 })
+</script>
+
+<script>
+export default {
+  name: 'NavSidebarItem'
+}
 </script>
