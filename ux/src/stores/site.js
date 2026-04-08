@@ -311,71 +311,89 @@ export const useSiteStore = defineStore('site', {
       }
     },
     _buildNavTree (items) {
-      // Build a nested nav structure from flat tree items
-      const folders = {}
-      const pages = []
+      // Build nested nav from flat tree items using page paths
+      // Strategy: use pages only, derive folder structure from paths
+      const root = { children: [] }
+      const nodeMap = { '': root }
 
-      // Separate folders and pages
+      // Ensure a folder node exists for a given path (e.g. 'nees.portal')
+      function ensureFolder (ltreePath) {
+        if (nodeMap[ltreePath]) return nodeMap[ltreePath]
+        const parts = ltreePath.split('.')
+        const name = parts[parts.length - 1]
+        const parentLtree = parts.slice(0, -1).join('.')
+        const parent = ensureFolder(parentLtree)
+        const folder = {
+          id: `folder-${ltreePath}`,
+          type: 'link',
+          label: name.charAt(0).toUpperCase() + name.slice(1),
+          icon: 'las la-folder',
+          target: '',
+          children: []
+        }
+        parent.children.push(folder)
+        nodeMap[ltreePath] = folder
+        return folder
+      }
+
+      // Use folder titles from tree data
+      const folderTitles = {}
       for (const item of items) {
         if (item.__typename === 'TreeItemFolder') {
-          const fullPath = item.folderPath ? `${item.folderPath}.${item.fileName}` : item.fileName
-          folders[fullPath] = {
-            id: item.id,
-            type: 'link',
-            label: item.title || item.fileName,
-            icon: 'las la-folder',
-            target: '',
-            folderPath: fullPath,
-            children: []
-          }
-        } else {
-          pages.push(item)
+          const key = item.folderPath ? `${item.folderPath}.${item.fileName}` : item.fileName
+          folderTitles[key] = item.title
         }
       }
 
-      // Add pages to their parent folders or root
-      const rootItems = []
+      // Process pages — add each to its parent folder
+      const pages = items.filter(i => i.__typename === 'TreeItemPage')
+      pages.sort((a, b) => (a.title || '').localeCompare(b.title || ''))
 
       for (const page of pages) {
-        const parentPath = page.folderPath || ''
-        const pagePath = parentPath ? `${parentPath.replace(/\./g, '/')}/${page.fileName}` : page.fileName
+        const parentLtree = page.folderPath || ''
+        const urlPath = parentLtree
+          ? `/${parentLtree.replace(/\./g, '/')}/${page.fileName}`
+          : `/${page.fileName}`
+
         const navItem = {
           id: page.id,
           type: 'link',
           label: page.title || page.fileName,
           icon: 'las la-file-alt',
-          target: `/${pagePath}`
+          target: urlPath
         }
 
-        if (parentPath && folders[parentPath]) {
-          folders[parentPath].children.push(navItem)
+        if (parentLtree) {
+          const parent = ensureFolder(parentLtree)
+          parent.children.push(navItem)
         } else {
-          rootItems.push(navItem)
+          root.children.push(navItem)
         }
       }
 
-      // Nest folders into their parents
-      const rootFolders = []
-      const sortedPaths = Object.keys(folders).sort((a, b) => b.length - a.length) // deepest first
-
-      for (const path of sortedPaths) {
-        const folder = folders[path]
-        const parts = path.split('.')
-        if (parts.length > 1) {
-          const parentPath = parts.slice(0, -1).join('.')
-          if (folders[parentPath]) {
-            folders[parentPath].children.unshift(folder)
-            continue
-          }
+      // Apply folder titles from tree data
+      for (const [key, title] of Object.entries(folderTitles)) {
+        if (nodeMap[key] && title) {
+          nodeMap[key].label = title.charAt(0).toUpperCase() + title.slice(1)
         }
-        rootFolders.push(folder)
       }
 
-      // Sort root folders by label
-      rootFolders.sort((a, b) => a.label.localeCompare(b.label))
+      // Sort: folders first (items with children), then pages, alphabetically
+      function sortChildren (node) {
+        if (!node.children) return
+        node.children.sort((a, b) => {
+          const aIsFolder = a.children?.length > 0 ? 0 : 1
+          const bIsFolder = b.children?.length > 0 ? 0 : 1
+          if (aIsFolder !== bIsFolder) return aIsFolder - bIsFolder
+          return (a.label || '').localeCompare(b.label || '')
+        })
+        for (const child of node.children) {
+          sortChildren(child)
+        }
+      }
+      sortChildren(root)
 
-      // Combine: root folders first, then root pages
-      return [...rootFolders, ...rootItems]
+      return root.children
     }
   }
 })
