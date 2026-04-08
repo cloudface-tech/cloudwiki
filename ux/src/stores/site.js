@@ -316,17 +316,36 @@ export const useSiteStore = defineStore('site', {
       const root = { children: [] }
       const nodeMap = { '': root }
 
-      // Ensure a folder node exists for a given path (e.g. 'nees.portal')
+      // Collect folder titles from tree data first
+      const folderTitles = {}
+      for (const item of items) {
+        if (item.__typename === 'TreeItemFolder') {
+          const key = item.folderPath ? `${item.folderPath}.${item.fileName}` : item.fileName
+          if (item.title && item.title !== item.fileName) {
+            folderTitles[key] = item.title
+          }
+        }
+      }
+
+      // Prettify a folder name: 'gestao' -> 'Gestao', 'ci-cd' -> 'CI/CD'
+      function prettifyName (name) {
+        return name
+          .replace(/-/g, ' ')
+          .replace(/\b\w/g, c => c.toUpperCase())
+      }
+
+      // Ensure a folder node exists for a given ltree path
       function ensureFolder (ltreePath) {
         if (nodeMap[ltreePath]) return nodeMap[ltreePath]
         const parts = ltreePath.split('.')
         const name = parts[parts.length - 1]
         const parentLtree = parts.slice(0, -1).join('.')
         const parent = ensureFolder(parentLtree)
+        const label = folderTitles[ltreePath] || prettifyName(name)
         const folder = {
           id: `folder-${ltreePath}`,
           type: 'link',
-          label: name.charAt(0).toUpperCase() + name.slice(1),
+          label,
           icon: 'las la-folder',
           target: '',
           children: []
@@ -334,15 +353,6 @@ export const useSiteStore = defineStore('site', {
         parent.children.push(folder)
         nodeMap[ltreePath] = folder
         return folder
-      }
-
-      // Use folder titles from tree data
-      const folderTitles = {}
-      for (const item of items) {
-        if (item.__typename === 'TreeItemFolder') {
-          const key = item.folderPath ? `${item.folderPath}.${item.fileName}` : item.fileName
-          folderTitles[key] = item.title
-        }
       }
 
       // Process pages — add each to its parent folder
@@ -371,12 +381,7 @@ export const useSiteStore = defineStore('site', {
         }
       }
 
-      // Apply folder titles from tree data
-      for (const [key, title] of Object.entries(folderTitles)) {
-        if (nodeMap[key] && title) {
-          nodeMap[key].label = title.charAt(0).toUpperCase() + title.slice(1)
-        }
-      }
+      // Folder titles already applied during ensureFolder()
 
       // Sort: folders first (items with children), then pages, alphabetically
       function sortChildren (node) {
