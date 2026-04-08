@@ -83,18 +83,19 @@
         q-tooltip {{ sourceMode ? 'Back to Visual Editor' : 'Source / Preview' }}
   //- Visual WYSIWYG editor
   editor-content(v-show='!sourceMode', :editor='editor')
-  //- Source + Preview split
+  //- Markdown Source + Preview split
   .source-split(v-if='sourceMode')
     .source-split__code
-      .source-split__label SOURCE
+      .source-split__label MARKDOWN
       textarea.source-split__textarea(
-        v-model='sourceHtml'
+        v-model='sourceMd'
         spellcheck='false'
         @input='onSourceInput'
+        placeholder='# Title\n\n**Bold** text\n\n- List item'
         )
     .source-split__preview
       .source-split__label PREVIEW
-      .source-split__rendered.page-contents(v-html='sourceHtml')
+      .source-split__rendered.page-contents(v-html='previewHtml')
 </template>
 
 <script setup>
@@ -159,21 +160,42 @@ const state = reactive({
 })
 
 const sourceMode = ref(false)
-const sourceHtml = ref('')
+const sourceMd = ref('')
+const previewHtml = ref('')
 
-function toggleSourceMode () {
+let TurndownService = null
+let markedParse = null
+
+async function loadConverters () {
+  if (!TurndownService) {
+    const td = await import('turndown')
+    TurndownService = td.default || td.TurndownService || td
+  }
+  if (!markedParse) {
+    const m = await import('marked')
+    markedParse = m.marked || m.default
+  }
+}
+
+async function toggleSourceMode () {
+  await loadConverters()
   if (!sourceMode.value) {
-    // Entering source mode — grab current HTML from editor
-    sourceHtml.value = editor.value?.getHTML() || ''
+    // Entering source mode — convert TipTap HTML to Markdown
+    const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' })
+    sourceMd.value = turndown.turndown(editor.value?.getHTML() || '')
+    previewHtml.value = await markedParse(sourceMd.value)
   } else {
-    // Leaving source mode — push source HTML back into TipTap
-    editor.value?.commands.setContent(sourceHtml.value)
+    // Leaving source mode — convert Markdown back to HTML and push into TipTap
+    const html = await markedParse(sourceMd.value)
+    editor.value?.commands.setContent(html)
   }
   sourceMode.value = !sourceMode.value
 }
 
-function onSourceInput () {
-  // Live update preview (sourceHtml is v-model, preview auto-updates)
+async function onSourceInput () {
+  if (markedParse) {
+    previewHtml.value = await markedParse(sourceMd.value)
+  }
 }
 
 let editor = null
