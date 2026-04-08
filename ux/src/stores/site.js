@@ -341,7 +341,7 @@ export const useSiteStore = defineStore('site', {
         const name = parts[parts.length - 1]
         const parentLtree = parts.slice(0, -1).join('.')
         const parent = ensureFolder(parentLtree)
-        const label = folderTitles[ltreePath] || prettifyName(name)
+        const label = prettifyName(name)
         const folder = {
           id: `folder-${ltreePath}`,
           type: 'link',
