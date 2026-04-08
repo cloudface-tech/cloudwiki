@@ -804,9 +804,9 @@ function insertTable () {
 }
 function insertDiagram (type) {
   if (type === 'mermaid') {
-    editor.chain().focus().insertContent({ type: 'mermaidBlock' }).run()
+    editor.value.chain().focus().insertContent({ type: 'mermaidBlock' }).run()
   } else if (type === 'excalidraw') {
-    editor.chain().focus().insertContent({ type: 'excalidrawBlock' }).run()
+    editor.value.chain().focus().insertContent({ type: 'excalidrawBlock' }).run()
   }
 }
 function snapshot () {
