@@ -243,6 +243,11 @@ export const useSiteStore = defineStore('site', {
     },
     async fetchNavigation (id) {
       // Load navigation from tree (auto-generated from pages)
+      const siteId = this.id
+      if (!siteId) {
+        console.warn('[Nav] No siteId available, skipping tree load')
+        return
+      }
       try {
         const resp = await APOLLO_CLIENT.query({
           query: gql`
@@ -271,12 +276,14 @@ export const useSiteStore = defineStore('site', {
               }
             }
           `,
-          variables: { siteId: this.id },
+          variables: { siteId },
           fetchPolicy: 'network-only'
         })
 
         const items = resp?.data?.tree ?? []
+        console.info('[Nav] Tree loaded:', items.length, 'items')
         const navTree = this._buildNavTree(items)
+        console.info('[Nav] Built nav tree:', navTree.length, 'root items', JSON.stringify(navTree.slice(0, 3).map(i => ({ label: i.label, type: i.type, depth: i.depth }))))
 
         this.$patch({
           nav: {
@@ -285,29 +292,7 @@ export const useSiteStore = defineStore('site', {
           }
         })
       } catch (err) {
-        console.warn('[Nav] Tree load failed, falling back to manual nav:', err.message)
-        // Fallback to manual navigation
-        try {
-          const resp = await APOLLO_CLIENT.query({
-            query: gql`
-              query getNavigationItems ($id: UUID!) {
-                navigationById (id: $id) {
-                  id type label icon target openInNewWindow
-                  children { id type label icon target openInNewWindow }
-                }
-              }
-            `,
-            variables: { id }
-          })
-          this.$patch({
-            nav: {
-              currentId: id,
-              items: resp?.data?.navigationById ?? []
-            }
-          })
-        } catch (err2) {
-          console.warn(err2.message)
-        }
+        console.error('[Nav] Tree load failed:', err.message, err)
       }
     },
     _buildNavTree (items) {
