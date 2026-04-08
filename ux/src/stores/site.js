@@ -305,7 +305,7 @@ export const useSiteStore = defineStore('site', {
       const folderTitles = {}
       for (const item of items) {
         if (item.__typename === 'TreeItemFolder') {
-          const key = item.folderPath ? `${item.folderPath}.${item.fileName}` : item.fileName
+          const key = item.folderPath ? `${item.folderPath}/${item.fileName}` : item.fileName
           if (item.title && item.title !== item.fileName) {
             folderTitles[key] = item.title
           }
@@ -322,9 +322,9 @@ export const useSiteStore = defineStore('site', {
       // Ensure a folder node exists for a given ltree path
       function ensureFolder (ltreePath) {
         if (nodeMap[ltreePath]) return nodeMap[ltreePath]
-        const parts = ltreePath.split('.')
+        const parts = ltreePath.split('/')
         const name = parts[parts.length - 1]
-        const parentLtree = parts.slice(0, -1).join('.')
+        const parentLtree = parts.slice(0, -1).join('/')
         const parent = ensureFolder(parentLtree)
         const label = prettifyName(name)
         const folder = {
@@ -347,7 +347,7 @@ export const useSiteStore = defineStore('site', {
       for (const page of pages) {
         const parentLtree = page.folderPath || ''
         const urlPath = parentLtree
-          ? `/${parentLtree.replace(/\./g, '/')}/${page.fileName}`
+          ? `/${parentLtree}/${page.fileName}`
           : `/${page.fileName}`
 
         const navItem = {
