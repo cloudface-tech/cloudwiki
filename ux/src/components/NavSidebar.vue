@@ -1,37 +1,56 @@
-<template lang="pug">
-nav.sidebar-nav-wrapper(role='navigation', :aria-label='t(`nav.sidebarAriaLabel`)')
-  q-scroll-area.sidebar-nav(
-    :thumb-style='thumbStyle'
-    :bar-style='barStyle'
-    )
-    q-list.sidebar-nav-list(
-      clickable
-      dense
-      )
-      nav-sidebar-item(
-        v-for='item of siteStore.nav.items'
-        :key='item.id'
-        :item='item'
-        :depth='0'
-        )
+<template>
+  <nav class="sidebar-nav-wrapper" role="navigation">
+    <q-scroll-area class="sidebar-nav" :thumb-style="thumbStyle" :bar-style="barStyle">
+      <q-list class="sidebar-nav-list" clickable dense>
+        <template v-for="(item, idx) of siteStore.nav.items" :key="item.id || idx">
+          <!-- Folder -->
+          <q-item
+            v-if="item.type === 'folder'"
+            v-show="isVisible(item, idx)"
+            clickable
+            :style="{ paddingLeft: (12 + item.depth * 16) + 'px' }"
+            class="sidebar-nav-folder"
+            @click="toggleFolder(idx)"
+          >
+            <q-item-section side>
+              <q-icon :name="expanded[idx] ? 'las la-angle-down' : 'las la-angle-right'" size="14px" />
+            </q-item-section>
+            <q-item-section class="text-wordbreak-all text-weight-medium">
+              {{ item.label }}
+            </q-item-section>
+          </q-item>
+
+          <!-- Page link -->
+          <q-item
+            v-else-if="item.type === 'link'"
+            v-show="isVisible(item, idx)"
+            :to="item.target"
+            :style="{ paddingLeft: (12 + item.depth * 16) + 'px' }"
+          >
+            <q-item-section class="text-wordbreak-all">
+              {{ item.label }}
+            </q-item-section>
+          </q-item>
+        </template>
+      </q-list>
+    </q-scroll-area>
+  </nav>
 </template>
 
 <script setup>
-import { useQuasar } from 'quasar'
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { reactive, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 import { usePageStore } from '@/stores/page'
 import { useSiteStore } from '@/stores/site'
-import NavSidebarItem from './NavSidebarItem.vue'
 
-const $q = useQuasar()
 const pageStore = usePageStore()
 const siteStore = useSiteStore()
-const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
+
+const expanded = reactive({})
 
 const thumbStyle = {
   right: '2px',
@@ -46,12 +65,33 @@ const barStyle = {
   opacity: 0.1
 }
 
+function toggleFolder (idx) {
+  expanded[idx] = !expanded[idx]
+}
+
+function isVisible (item, idx) {
+  // Items at depth 0 are always visible
+  if (item.depth === 0) return true
+
+  // Find parent folder — walk backwards to find closest folder with depth = item.depth - 1
+  const items = siteStore.nav.items
+  for (let i = idx - 1; i >= 0; i--) {
+    if (items[i].depth < item.depth) {
+      // This is the parent
+      if (items[i].type === 'folder') {
+        return expanded[i] && isVisible(items[i], i)
+      }
+      return false
+    }
+  }
+  return true
+}
+
 watch(() => pageStore.navigationId, (newValue) => {
   if (newValue && newValue !== siteStore.nav.currentId) {
     siteStore.fetchNavigation(newValue)
   }
 }, { immediate: true })
-
 </script>
 
 <style lang="scss">
@@ -64,86 +104,29 @@ watch(() => pageStore.navigationId, (newValue) => {
 .sidebar-nav {
   height: 100%;
 
-  &-list > .q-separator {
-    margin: 8px 16px;
-    background: #E2E8F0;
-  }
+  &-folder {
+    color: #64748B;
+    font-size: 0.825rem;
+    min-height: 32px;
 
-  &-header {
-    color: #94A3B8 !important;
-    font-size: 0.7rem !important;
-    font-weight: 600 !important;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    padding: 16px 16px 6px !important;
-  }
-
-  &-expand {
-    .q-expansion-item__container > .q-item {
-      padding: 6px 12px;
-      margin: 1px 8px;
-      border-radius: 6px;
-      min-height: 34px;
-      color: #334155;
-      font-weight: 500;
-      font-size: 0.875rem;
-
-      .q-icon { font-size: 18px; color: #94A3B8; }
-
-      &:hover {
-        background: #F1F5F9;
-      }
+    .q-icon {
+      font-size: 14px;
+      color: #94A3B8;
     }
 
-    .q-expansion-item__content {
-      border-left: 1px solid #E2E8F0;
-      margin-left: 20px;
-
-      .q-item {
-        padding: 4px 12px;
-        margin: 1px 4px;
-        border-radius: 6px;
-        min-height: 30px;
-        font-size: 0.825rem;
-        color: #64748B;
-
-        &:hover {
-          background: #F1F5F9;
-          color: #334155;
-        }
-
-        &.q-router-link--active {
-          background: #E6F1FE;
-          color: #006FEE;
-          font-weight: 600;
-        }
-      }
-
-      // Nested expansion items
-      .sidebar-nav-expand {
-        .q-expansion-item__container > .q-item {
-          font-size: 0.825rem;
-          min-height: 30px;
-          padding: 4px 8px;
-          margin: 1px 4px;
-        }
-
-        .q-expansion-item__content {
-          margin-left: 12px;
-        }
-      }
+    &:hover {
+      background: #F1F5F9;
+      color: #334155;
     }
   }
 
   .q-list > .q-item {
-    padding: 6px 12px;
+    padding: 4px 12px;
     margin: 1px 8px;
     border-radius: 6px;
-    min-height: 34px;
+    min-height: 32px;
     color: #334155;
-    font-size: 0.875rem;
-
-    .q-icon { font-size: 18px; color: #94A3B8; }
+    font-size: 0.825rem;
 
     &:hover {
       background: #F1F5F9;
@@ -154,8 +137,6 @@ watch(() => pageStore.navigationId, (newValue) => {
       background: #E6F1FE !important;
       color: #006FEE !important;
       font-weight: 600;
-
-      .q-icon { color: #006FEE; }
     }
   }
 }

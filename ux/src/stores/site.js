@@ -381,9 +381,7 @@ export const useSiteStore = defineStore('site', {
         }
       }
 
-      // Folder titles already applied during ensureFolder()
-
-      // Sort: folders first (items with children), then pages, alphabetically
+      // Sort children: folders first, then pages, alphabetically
       function sortChildren (node) {
         if (!node.children) return
         node.children.sort((a, b) => {
@@ -398,7 +396,21 @@ export const useSiteStore = defineStore('site', {
       }
       sortChildren(root)
 
-      return root.children
+      // Flatten tree to a flat list with depth info for rendering
+      const flatList = []
+      function flatten (children, depth) {
+        for (const child of children) {
+          if (child.children && child.children.length > 0) {
+            flatList.push({ id: child.id, type: 'folder', label: child.label, depth, expanded: false })
+            flatten(child.children, depth + 1)
+          } else {
+            flatList.push({ id: child.id, type: 'link', label: child.label, target: child.target, icon: child.icon, depth })
+          }
+        }
+      }
+      flatten(root.children, 0)
+
+      return flatList
     }
   }
 })
