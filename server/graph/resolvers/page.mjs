@@ -4,6 +4,7 @@ import { parsePath } from '../../helpers/page.mjs'
 import tsquery from 'pg-tsquery'
 import { generateEmbedding } from '../../modules/search/embeddings.mjs'
 import { blendScores } from '../../modules/search/hybridSearch.mjs'
+import { dispatchWebhook } from '../../modules/webhooks/dispatcher.mjs'
 
 const tsq = tsquery()
 const tagsInQueryRgx = /#[a-z0-9-\u3400-\u4DBF\u4E00-\u9FFF]+(?=(?:[^"]*(?:")[^"]*(?:"))*[^"]*$)/g
@@ -495,6 +496,7 @@ export default {
           ...args,
           user: context.req.user
         })
+        dispatchWebhook('page:create', { id: page.id, path: page.path, locale: page.locale, title: page.title }).catch(() => {})
         return {
           operation: generateSuccess('Page created successfully.'),
           page
@@ -512,6 +514,7 @@ export default {
           ...args,
           user: context.req.user
         })
+        dispatchWebhook('page:update', { id: page.id, path: page.path, locale: page.locale, title: page.title }).catch(() => {})
         return {
           operation: generateSuccess('Page has been updated.'),
           page
@@ -561,6 +564,7 @@ export default {
           ...args,
           user: context.req.user
         })
+        dispatchWebhook('page:delete', { id: args.id }).catch(() => {})
         return {
           operation: generateSuccess('Page has been deleted.')
         }
