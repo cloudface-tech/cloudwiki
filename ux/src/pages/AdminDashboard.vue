@@ -6,7 +6,25 @@ q-page.admin-dashboard
     .col.q-pl-md
       .text-h5.text-primary.animated.fadeInLeft {{ t('admin.dashboard.title') }}
       .text-subtitle1.text-grey.animated.fadeInLeft.wait-p2s {{ t('admin.dashboard.subtitle') }}
-  .row.q-px-md.q-col-gutter-sm
+
+  //- Loading skeleton
+  .row.q-px-md.q-col-gutter-sm(v-if='adminStore.loading')
+    .col-12.col-sm-6.col-lg-3(v-for='i in 4' :key='i')
+      q-card
+        q-card-section.admin-dashboard-card
+          q-skeleton(type='rect' width='64px' height='64px')
+          div.q-pl-sm
+            q-skeleton(type='text' width='60%')
+            q-skeleton(type='text' width='40%')
+        q-separator
+        q-card-actions(align='right')
+          q-skeleton(type='rect' width='80px' height='36px')
+          q-skeleton.q-ml-sm(type='rect' width='80px' height='36px')
+    .col-12
+      q-skeleton(type='rect' height='52px')
+
+  //- Loaded content
+  .row.q-px-md.q-col-gutter-sm(v-else)
     .col-12.col-sm-6.col-lg-3
       q-card
         q-card-section.admin-dashboard-card

@@ -7,6 +7,7 @@ import semverGte from 'semver/functions/gte'
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({
+    loading: true,
     currentSiteId: null,
     info: {
       currentVersion: 'n/a',
@@ -52,6 +53,7 @@ export const useAdminStore = defineStore('admin', {
       this.locales = sortBy(cloneDeep(resp?.data?.locales ?? []), ['nativeName', 'name'])
     },
     async fetchInfo () {
+      this.loading = true
       const resp = await APOLLO_CLIENT.query({
         query: gql`
           query getAdminInfo {
@@ -81,6 +83,7 @@ export const useAdminStore = defineStore('admin', {
       this.info.isMetricsEnabled = clone(resp?.data?.metricsState ?? false)
       this.info.isMailConfigured = clone(resp?.data?.systemInfo?.isMailConfigured ?? false)
       this.info.isSchedulerHealthy = clone(resp?.data?.systemInfo?.isSchedulerHealthy ?? false)
+      this.loading = false
     },
     async fetchSites () {
       const resp = await APOLLO_CLIENT.query({
