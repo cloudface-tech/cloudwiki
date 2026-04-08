@@ -8,42 +8,12 @@ nav.sidebar-nav-wrapper(role='navigation', :aria-label='t(`nav.sidebarAriaLabel`
       clickable
       dense
       )
-      template(v-for='item of siteStore.nav.items', :key='item.id')
-        q-item-label.sidebar-nav-header(
-          v-if='item.type === `header`'
-          header
-          ) {{ item.label }}
-        q-expansion-item.sidebar-nav-expand(
-          v-else-if='item.type === `link` && item.children?.length > 0'
-          :icon='item.icon'
-          :label='item.label'
-          :aria-label='item.label'
-          dense
-          )
-          q-list(
-            clickable
-            dense
-            )
-            q-item(
-              v-for='itemChild of item.children'
-              :to='itemChild.target'
-              :key='itemChild.id'
-              :aria-label='itemChild.label'
-              :aria-current='route.path === itemChild.target ? `page` : undefined'
-              )
-              q-item-section.text-wordbreak-all {{ itemChild.label }}
-        q-item(
-          v-else-if='item.type === `link`'
-          :to='item.target'
-          :aria-label='item.label'
-          :aria-current='route.path === item.target ? `page` : undefined'
-          )
-          q-item-section(side)
-            q-icon(:name='item.icon')
-          q-item-section.text-wordbreak-all {{ item.label }}
-        q-separator.sidebar-nav-sep(
-          v-else-if='item.type === `separator`'
-          )
+      nav-sidebar-item(
+        v-for='item of siteStore.nav.items'
+        :key='item.id'
+        :item='item'
+        :depth='0'
+        )
 </template>
 
 <script setup>
@@ -54,6 +24,7 @@ import { useI18n } from 'vue-i18n'
 
 import { usePageStore } from '@/stores/page'
 import { useSiteStore } from '@/stores/site'
+import NavSidebarItem from './NavSidebarItem.vue'
 
 const $q = useQuasar()
 const pageStore = usePageStore()
@@ -125,12 +96,12 @@ watch(() => pageStore.navigationId, (newValue) => {
     }
 
     .q-expansion-item__content {
-      border-left: none;
-      padding-left: 12px;
+      border-left: 1px solid #E2E8F0;
+      margin-left: 20px;
 
       .q-item {
-        padding: 4px 12px 4px 36px;
-        margin: 1px 8px;
+        padding: 4px 12px;
+        margin: 1px 4px;
         border-radius: 6px;
         min-height: 30px;
         font-size: 0.825rem;
@@ -145,6 +116,20 @@ watch(() => pageStore.navigationId, (newValue) => {
           background: #E6F1FE;
           color: #006FEE;
           font-weight: 600;
+        }
+      }
+
+      // Nested expansion items
+      .sidebar-nav-expand {
+        .q-expansion-item__container > .q-item {
+          font-size: 0.825rem;
+          min-height: 30px;
+          padding: 4px 8px;
+          margin: 1px 4px;
+        }
+
+        .q-expansion-item__content {
+          margin-left: 12px;
         }
       }
     }
