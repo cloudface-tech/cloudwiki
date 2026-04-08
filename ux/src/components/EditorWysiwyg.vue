@@ -74,19 +74,27 @@
     q-space
     q-btn(
       flat
-      :icon='splitView ? "mdi-eye-off" : "mdi-eye"'
+      :icon='sourceMode ? "mdi-eye" : "mdi-code-tags"'
       padding='xs'
-      :color='splitView ? "primary" : "grey-10"'
-      @click='splitView = !splitView'
-      :aria-label='splitView ? "Hide preview" : "Show preview"'
+      :color='sourceMode ? "primary" : "grey-10"'
+      @click='toggleSourceMode'
+      :aria-label='sourceMode ? "Visual Editor" : "Source / Preview"'
       )
-        q-tooltip {{ splitView ? 'Hide Preview' : 'Split View (MD / Preview)' }}
-  .wysiwyg-split(:class='{ "wysiwyg-split--active": splitView }')
-    .wysiwyg-split__editor
-      editor-content(:editor='editor')
-    .wysiwyg-split__preview(v-if='splitView')
-      .wysiwyg-split__preview-label PREVIEW
-      .wysiwyg-split__preview-content.page-contents(v-html='previewHtml')
+        q-tooltip {{ sourceMode ? 'Back to Visual Editor' : 'Source / Preview' }}
+  //- Visual WYSIWYG editor
+  editor-content(v-show='!sourceMode', :editor='editor')
+  //- Source + Preview split
+  .source-split(v-if='sourceMode')
+    .source-split__code
+      .source-split__label SOURCE
+      textarea.source-split__textarea(
+        v-model='sourceHtml'
+        spellcheck='false'
+        @input='onSourceInput'
+        )
+    .source-split__preview
+      .source-split__label PREVIEW
+      .source-split__rendered.page-contents(v-html='sourceHtml')
 </template>
 
 <script setup>
@@ -150,14 +158,23 @@ const state = reactive({
   collabEnabled: false
 })
 
-const splitView = ref(false)
-const previewHtml = ref('')
+const sourceMode = ref(false)
+const sourceHtml = ref('')
 
-watch(splitView, (val) => {
-  if (val && editor?.value) {
-    previewHtml.value = editor.value.getHTML()
+function toggleSourceMode () {
+  if (!sourceMode.value) {
+    // Entering source mode — grab current HTML from editor
+    sourceHtml.value = editor.value?.getHTML() || ''
+  } else {
+    // Leaving source mode — push source HTML back into TipTap
+    editor.value?.commands.setContent(sourceHtml.value)
   }
-})
+  sourceMode.value = !sourceMode.value
+}
+
+function onSourceInput () {
+  // Live update preview (sourceHtml is v-model, preview auto-updates)
+}
 
 let editor = null
 let ydoc = null
@@ -800,14 +817,10 @@ function init () {
       editorStore.$patch({
         lastChangeTimestamp: DateTime.utc()
       })
-      const html = editor.getHTML()
       pageStore.$patch({
         content: JSON.stringify(editor.getJSON()),
-        render: html
+        render: editor.getHTML()
       })
-      if (splitView.value) {
-        previewHtml.value = html
-      }
     }
   })
 }
@@ -996,39 +1009,52 @@ init()
   }
 }
 
-.wysiwyg-split {
+.source-split {
+  display: flex;
   height: 100%;
 
-  &--active {
+  &__code {
+    flex: 1;
     display: flex;
+    flex-direction: column;
+    min-width: 0;
+    border-right: 1px solid $grey-4;
   }
 
-  &__editor {
+  &__textarea {
     flex: 1;
-    overflow-y: auto;
-    min-width: 0;
+    width: 100%;
+    font-family: 'IBM Plex Mono', 'Roboto Mono', monospace;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    padding: 12px 16px;
+    border: none;
+    resize: none;
+    background: #1e293b;
+    color: #e2e8f0;
+
+    &:focus { outline: none; }
   }
 
   &__preview {
     flex: 1;
     overflow-y: auto;
-    border-left: 1px solid $grey-4;
-    background: #fafafa;
     min-width: 0;
+    background: #fff;
   }
 
-  &__preview-label {
+  &__label {
     font-size: 0.65rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 1px;
     color: #94a3b8;
-    padding: 8px 16px 4px;
+    padding: 6px 16px;
     border-bottom: 1px solid #e2e8f0;
-    background: #f1f5f9;
+    background: #f8fafc;
   }
 
-  &__preview-content {
+  &__rendered {
     padding: 16px;
   }
 }
