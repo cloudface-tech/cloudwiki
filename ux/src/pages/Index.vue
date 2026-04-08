@@ -44,15 +44,14 @@ import PageActionsCol from '@/components/PageActionsCol.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SideDialog from '@/components/SideDialog.vue'
 
+const wysiwygEditor = defineAsyncComponent({
+  loader: () => import('../components/EditorWysiwyg.vue'),
+  loadingComponent: LoadingGeneric
+})
+
 const editorComponents = {
-  markdown: defineAsyncComponent({
-    loader: () => import('../components/EditorMarkdown.vue'),
-    loadingComponent: LoadingGeneric
-  }),
-  wysiwyg: defineAsyncComponent({
-    loader: () => import('../components/EditorWysiwyg.vue'),
-    loadingComponent: LoadingGeneric
-  })
+  markdown: wysiwygEditor,
+  wysiwyg: wysiwygEditor
 }
 
 const $q = useQuasar()
