@@ -242,42 +242,140 @@ export const useSiteStore = defineStore('site', {
       }
     },
     async fetchNavigation (id) {
+      // Load navigation from tree (auto-generated from pages)
       try {
         const resp = await APOLLO_CLIENT.query({
           query: gql`
-            query getNavigationItems ($id: UUID!) {
-              navigationById (
-                id: $id
+            query getTreeNav ($siteId: UUID!) {
+              tree (
+                siteId: $siteId
+                types: [folder, page]
+                depth: 10
+                orderBy: title
+                orderByDirection: asc
+                limit: 1000
               ) {
-                id
-                type
-                label
-                icon
-                target
-                openInNewWindow
-                children {
+                __typename
+                ... on TreeItemFolder {
                   id
-                  type
-                  label
-                  icon
-                  target
-                  openInNewWindow
+                  folderPath
+                  fileName
+                  title
+                }
+                ... on TreeItemPage {
+                  id
+                  folderPath
+                  fileName
+                  title
                 }
               }
             }
           `,
-          variables: { id }
+          variables: { siteId: this.id },
+          fetchPolicy: 'network-only'
         })
+
+        const items = resp?.data?.tree ?? []
+        const navTree = this._buildNavTree(items)
+
         this.$patch({
           nav: {
             currentId: id,
-            items: resp?.data?.navigationById ?? []
+            items: navTree
           }
         })
       } catch (err) {
-        console.warn(err.networkError?.result ?? err.message)
-        throw err
+        console.warn('[Nav] Tree load failed, falling back to manual nav:', err.message)
+        // Fallback to manual navigation
+        try {
+          const resp = await APOLLO_CLIENT.query({
+            query: gql`
+              query getNavigationItems ($id: UUID!) {
+                navigationById (id: $id) {
+                  id type label icon target openInNewWindow
+                  children { id type label icon target openInNewWindow }
+                }
+              }
+            `,
+            variables: { id }
+          })
+          this.$patch({
+            nav: {
+              currentId: id,
+              items: resp?.data?.navigationById ?? []
+            }
+          })
+        } catch (err2) {
+          console.warn(err2.message)
+        }
       }
+    },
+    _buildNavTree (items) {
+      // Build a nested nav structure from flat tree items
+      const folders = {}
+      const pages = []
+
+      // Separate folders and pages
+      for (const item of items) {
+        if (item.__typename === 'TreeItemFolder') {
+          const fullPath = item.folderPath ? `${item.folderPath}.${item.fileName}` : item.fileName
+          folders[fullPath] = {
+            id: item.id,
+            type: 'link',
+            label: item.title || item.fileName,
+            icon: 'las la-folder',
+            target: '',
+            folderPath: fullPath,
+            children: []
+          }
+        } else {
+          pages.push(item)
+        }
+      }
+
+      // Add pages to their parent folders or root
+      const rootItems = []
+
+      for (const page of pages) {
+        const parentPath = page.folderPath || ''
+        const pagePath = parentPath ? `${parentPath.replace(/\./g, '/')}/${page.fileName}` : page.fileName
+        const navItem = {
+          id: page.id,
+          type: 'link',
+          label: page.title || page.fileName,
+          icon: 'las la-file-alt',
+          target: `/${pagePath}`
+        }
+
+        if (parentPath && folders[parentPath]) {
+          folders[parentPath].children.push(navItem)
+        } else {
+          rootItems.push(navItem)
+        }
+      }
+
+      // Nest folders into their parents
+      const rootFolders = []
+      const sortedPaths = Object.keys(folders).sort((a, b) => b.length - a.length) // deepest first
+
+      for (const path of sortedPaths) {
+        const folder = folders[path]
+        const parts = path.split('.')
+        if (parts.length > 1) {
+          const parentPath = parts.slice(0, -1).join('.')
+          if (folders[parentPath]) {
+            folders[parentPath].children.unshift(folder)
+            continue
+          }
+        }
+        rootFolders.push(folder)
+      }
+
+      // Sort root folders by label
+      rootFolders.sort((a, b) => a.label.localeCompare(b.label))
+
+      // Combine: root folders first, then root pages
+      return [...rootFolders, ...rootItems]
     }
   }
 })
