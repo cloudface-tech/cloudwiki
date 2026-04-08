@@ -39,17 +39,17 @@ q-layout.admin(view='hHh Lpr lff')
                   q-item-label {{ lang.nativeName }}
                   q-item-label(caption) {{ lang.name }}
         account-menu
-  q-drawer.admin-sidebar(v-model='leftDrawerOpen', show-if-above, bordered)
+  q-drawer.admin-sidebar(v-model='leftDrawerOpen', show-if-above, bordered, role='navigation', :aria-label='t(`admin.nav.ariaLabel`)')
     q-scroll-area.admin-nav(
       :thumb-style='thumbStyle'
       :bar-style='barStyle'
       )
       q-list.text-white.q-pb-lg(padding, dense)
-        q-item(to='/_admin/dashboard', v-ripple, active-class='bg-primary text-white')
+        q-item(to='/_admin/dashboard', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.dashboard.title`)', :aria-current='route.path === `/_admin/dashboard` ? `page` : undefined')
           q-item-section(avatar)
             q-icon(name='img:/_assets/icons/fluent-apps-tab.svg')
           q-item-section {{ t('admin.dashboard.title') }}
-        q-item(to='/_admin/sites', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)')
+        q-item(to='/_admin/sites', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)', :aria-label='t(`admin.sites.title`)', :aria-current='route.path === `/_admin/sites` ? `page` : undefined')
           q-item-section(avatar)
             q-icon(name='img:/_assets/icons/fluent-change-theme.svg')
           q-item-section {{ t('admin.sites.title') }}
@@ -69,72 +69,73 @@ q-layout.admin(view='hHh Lpr lff')
                 option-label='title'
                 emit-value
                 map-options
+                :aria-label='t(`admin.nav.selectSite`)'
               )
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/general`', v-ripple, active-class='bg-primary text-white')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/general`', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.general.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/general`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-web.svg')
             q-item-section {{ t('admin.general.title') }}
           template(v-if='flagsStore.experimental')
-            q-item(:to='`/_admin/` + adminStore.currentSiteId + `/analytics`', v-ripple, active-class='bg-primary text-white', disabled)
+            q-item(:to='`/_admin/` + adminStore.currentSiteId + `/analytics`', v-ripple, active-class='bg-primary text-white', disabled, :aria-label='t(`admin.analytics.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/analytics`) ? `page` : undefined')
               q-item-section(avatar)
                 q-icon(name='img:/_assets/icons/fluent-bar-chart.svg')
               q-item-section {{ t('admin.analytics.title') }}
-            q-item(:to='`/_admin/` + adminStore.currentSiteId + `/approvals`', v-ripple, active-class='bg-primary text-white', disabled)
+            q-item(:to='`/_admin/` + adminStore.currentSiteId + `/approvals`', v-ripple, active-class='bg-primary text-white', disabled, :aria-label='t(`admin.approval.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/approvals`) ? `page` : undefined')
               q-item-section(avatar)
                 q-icon(name='img:/_assets/icons/fluent-inspection.svg')
               q-item-section {{ t('admin.approval.title') }}
-            q-item(:to='`/_admin/` + adminStore.currentSiteId + `/comments`', v-ripple, active-class='bg-primary text-white', disabled)
+            q-item(:to='`/_admin/` + adminStore.currentSiteId + `/comments`', v-ripple, active-class='bg-primary text-white', disabled, :aria-label='t(`admin.comments.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/comments`) ? `page` : undefined')
               q-item-section(avatar)
                 q-icon(name='img:/_assets/icons/fluent-comments.svg')
               q-item-section {{ t('admin.comments.title') }}
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/blocks`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/blocks`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)', :aria-label='t(`admin.blocks.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/blocks`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-rfid-tag.svg')
             q-item-section {{ t('admin.blocks.title') }}
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/editors`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/editors`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)', :aria-label='t(`admin.editors.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/editors`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-cashbook.svg')
             q-item-section {{ t('admin.editors.title') }}
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/locale`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/locale`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)', :aria-label='t(`admin.locale.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/locale`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-language.svg')
             q-item-section {{ t('admin.locale.title') }}
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/login`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/login`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)', :aria-label='t(`admin.login.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/login`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-bunch-of-keys.svg')
             q-item-section {{ t('admin.login.title') }}
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/navigation`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`) || userStore.can(`manage:navigation`)')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/navigation`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`) || userStore.can(`manage:navigation`)', :aria-label='t(`admin.navigation.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/navigation`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-tree-structure.svg')
             q-item-section {{ t('admin.navigation.title') }}
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/storage`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/storage`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`)', :aria-label='t(`admin.storage.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/storage`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-ssd.svg')
             q-item-section {{ t('admin.storage.title') }}
             q-item-section(side)
               //- TODO: Reflect site storage status
               status-light(:color='true ? `positive` : `warning`', :pulse='false')
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/tags`', v-ripple, active-class='bg-primary text-white', disabled, v-if='flagsStore.experimental && (userStore.can(`manage:sites`))')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/tags`', v-ripple, active-class='bg-primary text-white', disabled, v-if='flagsStore.experimental && (userStore.can(`manage:sites`))', :aria-label='t(`admin.tags.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/tags`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-tag.svg')
             q-item-section {{ t('admin.tags.title') }}
-          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/theme`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`) || userStore.can(`manage:theme`)')
+          q-item(:to='`/_admin/` + adminStore.currentSiteId + `/theme`', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:sites`) || userStore.can(`manage:theme`)', :aria-label='t(`admin.theme.title`)', :aria-current='route.params.siteid && route.path.endsWith(`/theme`) ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-paint-roller.svg')
             q-item-section {{ t('admin.theme.title') }}
         template(v-if='usersSectionShown')
           q-item-label.q-mt-sm(header).text-caption.text-blue-grey-4 {{ t('admin.nav.users') }}
-          q-item(to='/_admin/auth', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:system`)')
+          q-item(to='/_admin/auth', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:system`)', :aria-label='t(`admin.auth.title`)', :aria-current='route.path === `/_admin/auth` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-security-lock.svg')
             q-item-section {{ t('admin.auth.title') }}
-          q-item(to='/_admin/groups', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:groups`)')
+          q-item(to='/_admin/groups', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:groups`)', :aria-label='t(`admin.groups.title`)', :aria-current='route.path === `/_admin/groups` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-people.svg')
             q-item-section {{ t('admin.groups.title') }}
             q-item-section(side)
               q-badge(color='dark-3', :label='adminStore.info.groupsTotal')
-          q-item(to='/_admin/users', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:users`)')
+          q-item(to='/_admin/users', v-ripple, active-class='bg-primary text-white', v-if='userStore.can(`manage:users`)', :aria-label='t(`admin.users.title`)', :aria-current='route.path === `/_admin/users` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-account.svg')
             q-item-section {{ t('admin.users.title') }}
@@ -142,81 +143,81 @@ q-layout.admin(view='hHh Lpr lff')
               q-badge(color='dark-3', :label='adminStore.info.usersTotal')
         template(v-if='userStore.can(`manage:system`)')
           q-item-label.q-mt-sm(header).text-caption.text-blue-grey-4 {{ t('admin.nav.system') }}
-          q-item(to='/_admin/api', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/api', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.api.title`)', :aria-current='route.path === `/_admin/api` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-rest-api.svg')
             q-item-section {{ t('admin.api.title') }}
             q-item-section(side)
               status-light(:color='adminStore.info.isApiEnabled ? `positive` : `negative`')
-          q-item(to='/_admin/audit', v-ripple, active-class='bg-primary text-white', disabled, v-if='flagsStore.experimental')
+          q-item(to='/_admin/audit', v-ripple, active-class='bg-primary text-white', disabled, v-if='flagsStore.experimental', :aria-label='t(`admin.audit.title`)', :aria-current='route.path === `/_admin/audit` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-event-log.svg')
             q-item-section {{ t('admin.audit.title') }}
-          q-item(to='/_admin/extensions', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/extensions', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.extensions.title`)', :aria-current='route.path === `/_admin/extensions` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-module.svg')
             q-item-section {{ t('admin.extensions.title') }}
-          q-item(to='/_admin/icons', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/icons', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.icons.title`)', :aria-current='route.path === `/_admin/icons` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-spring.svg')
             q-item-section {{ t('admin.icons.title') }}
-          q-item(to='/_admin/instances', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/instances', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.instances.title`)', :aria-current='route.path === `/_admin/instances` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-network.svg')
             q-item-section {{ t('admin.instances.title') }}
-          q-item(to='/_admin/mail', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/mail', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.mail.title`)', :aria-current='route.path === `/_admin/mail` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-message-settings.svg')
             q-item-section {{ t('admin.mail.title') }}
             q-item-section(side)
               status-light(:color='adminStore.info.isMailConfigured ? `positive` : `warning`', :pulse='!adminStore.info.isMailConfigured')
-          q-item(to='/_admin/metrics', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/metrics', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.metrics.title`)', :aria-current='route.path === `/_admin/metrics` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-graph.svg')
             q-item-section {{ t('admin.metrics.title') }}
             q-item-section(side)
               status-light(:color='adminStore.info.isMetricsEnabled ? `positive` : `negative`')
-          q-item(to='/_admin/rendering', v-ripple, active-class='bg-primary text-white', v-if='flagsStore.experimental')
+          q-item(to='/_admin/rendering', v-ripple, active-class='bg-primary text-white', v-if='flagsStore.experimental', :aria-label='t(`admin.rendering.title`)', :aria-current='route.path === `/_admin/rendering` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-rich-text-converter.svg')
             q-item-section {{ t('admin.rendering.title') }}
-          q-item(to='/_admin/scheduler', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/scheduler', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.scheduler.title`)', :aria-current='route.path === `/_admin/scheduler` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-bot.svg')
             q-item-section {{ t('admin.scheduler.title') }}
             q-item-section(side)
               status-light(:color='adminStore.info.isSchedulerHealthy ? `positive` : `warning`', :pulse='!adminStore.info.isSchedulerHealthy')
-          q-item(to='/_admin/search', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/search', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.search.title`)', :aria-current='route.path === `/_admin/search` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-find-and-replace.svg')
             q-item-section {{ t('admin.search.title') }}
-          q-item(to='/_admin/security', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/security', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.security.title`)', :aria-current='route.path === `/_admin/security` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-protect.svg')
             q-item-section {{ t('admin.security.title') }}
-          q-item(to='/_admin/ssl', v-ripple, active-class='bg-primary text-white', disabled, v-if='flagsStore.experimental')
+          q-item(to='/_admin/ssl', v-ripple, active-class='bg-primary text-white', disabled, v-if='flagsStore.experimental', :aria-label='t(`admin.ssl.title`)', :aria-current='route.path === `/_admin/ssl` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-security-ssl.svg')
             q-item-section {{ t('admin.ssl.title') }}
-          q-item(to='/_admin/system', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/system', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.system.title`)', :aria-current='route.path === `/_admin/system` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-processor.svg')
             q-item-section {{ t('admin.system.title') }}
             q-item-section(side)
               status-light(:color='adminStore.isVersionLatest ? `positive` : `warning`')
-          q-item(to='/_admin/terminal', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/terminal', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.terminal.title`)', :aria-current='route.path === `/_admin/terminal` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-linux-terminal.svg')
             q-item-section {{ t('admin.terminal.title') }}
-          q-item(to='/_admin/utilities', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/utilities', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.utilities.title`)', :aria-current='route.path === `/_admin/utilities` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-swiss-army-knife.svg')
             q-item-section {{ t('admin.utilities.title') }}
-          q-item(to='/_admin/webhooks', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/webhooks', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.webhooks.title`)', :aria-current='route.path === `/_admin/webhooks` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-lightning-bolt.svg')
             q-item-section {{ t('admin.webhooks.title') }}
-          q-item(to='/_admin/flags', v-ripple, active-class='bg-primary text-white')
+          q-item(to='/_admin/flags', v-ripple, active-class='bg-primary text-white', :aria-label='t(`admin.dev.flags.title`)', :aria-current='route.path === `/_admin/flags` ? `page` : undefined')
             q-item-section(avatar)
               q-icon(name='img:/_assets/icons/fluent-windsock.svg')
             q-item-section {{ t('admin.dev.flags.title') }}

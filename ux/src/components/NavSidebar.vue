@@ -1,43 +1,49 @@
 <template lang="pug">
-q-scroll-area.sidebar-nav(
-  :thumb-style='thumbStyle'
-  :bar-style='barStyle'
-  )
-  q-list.sidebar-nav-list(
-    clickable
-    dense
+nav.sidebar-nav-wrapper(role='navigation', :aria-label='t(`nav.sidebarAriaLabel`)')
+  q-scroll-area.sidebar-nav(
+    :thumb-style='thumbStyle'
+    :bar-style='barStyle'
     )
-    template(v-for='item of siteStore.nav.items', :key='item.id')
-      q-item-label.sidebar-nav-header(
-        v-if='item.type === `header`'
-        header
-        ) {{ item.label }}
-      q-expansion-item.sidebar-nav-expand(
-        v-else-if='item.type === `link` && item.children?.length > 0'
-        :icon='item.icon'
-        :label='item.label'
-        dense
-        )
-        q-list(
-          clickable
+    q-list.sidebar-nav-list(
+      clickable
+      dense
+      )
+      template(v-for='item of siteStore.nav.items', :key='item.id')
+        q-item-label.sidebar-nav-header(
+          v-if='item.type === `header`'
+          header
+          ) {{ item.label }}
+        q-expansion-item.sidebar-nav-expand(
+          v-else-if='item.type === `link` && item.children?.length > 0'
+          :icon='item.icon'
+          :label='item.label'
+          :aria-label='item.label'
           dense
           )
-          q-item(
-            v-for='itemChild of item.children'
-            :to='itemChild.target'
-            :key='itemChild.id'
+          q-list(
+            clickable
+            dense
             )
-            q-item-section.text-wordbreak-all {{ itemChild.label }}
-      q-item(
-        v-else-if='item.type === `link`'
-        :to='item.target'
-        )
-        q-item-section(side)
-          q-icon(:name='item.icon')
-        q-item-section.text-wordbreak-all {{ item.label }}
-      q-separator.sidebar-nav-sep(
-        v-else-if='item.type === `separator`'
-        )
+            q-item(
+              v-for='itemChild of item.children'
+              :to='itemChild.target'
+              :key='itemChild.id'
+              :aria-label='itemChild.label'
+              :aria-current='route.path === itemChild.target ? `page` : undefined'
+              )
+              q-item-section.text-wordbreak-all {{ itemChild.label }}
+        q-item(
+          v-else-if='item.type === `link`'
+          :to='item.target'
+          :aria-label='item.label'
+          :aria-current='route.path === item.target ? `page` : undefined'
+          )
+          q-item-section(side)
+            q-icon(:name='item.icon')
+          q-item-section.text-wordbreak-all {{ item.label }}
+        q-separator.sidebar-nav-sep(
+          v-else-if='item.type === `separator`'
+          )
 </template>
 
 <script setup>
@@ -78,6 +84,12 @@ watch(() => pageStore.navigationId, (newValue) => {
 </script>
 
 <style lang="scss">
+.sidebar-nav-wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 .sidebar-nav {
   height: 100%;
 
