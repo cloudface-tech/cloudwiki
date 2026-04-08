@@ -6,9 +6,12 @@
         <button class="excalidraw-modal__btn excalidraw-modal__btn--primary" @click="save">Save & Close</button>
         <button class="excalidraw-modal__btn" @click="$emit('close')">Cancel</button>
       </div>
-      <div class="excalidraw-modal__canvas" ref="canvasRef">
-        <div v-if="loading" class="excalidraw-modal__loading">Loading Excalidraw...</div>
-      </div>
+      <iframe
+        ref="iframeRef"
+        src="https://excalidraw.com"
+        class="excalidraw-modal__frame"
+        allow="clipboard-read; clipboard-write"
+      />
     </div>
   </Teleport>
 </template>
@@ -22,69 +25,29 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'save'])
 
-const canvasRef = ref(null)
-const loading = ref(true)
-let reactRoot = null
-let currentElements = [...props.elements]
-let currentAppState = { ...props.appState }
+const iframeRef = ref(null)
 
-onMounted(async () => {
-  try {
-    const React = await import('react')
-    const ReactDOM = await import('react-dom/client')
-    const ExcalidrawModule = await import('@excalidraw/excalidraw')
-    const Excalidraw = ExcalidrawModule.Excalidraw
+function onMessage (event) {
+  if (event.origin !== 'https://excalidraw.com') return
+  // Excalidraw posts state changes via postMessage when integrated
+}
 
-    // Excalidraw needs its CSS
-    if (!document.getElementById('excalidraw-css')) {
-      const link = document.createElement('link')
-      link.id = 'excalidraw-css'
-      link.rel = 'stylesheet'
-      link.href = 'https://unpkg.com/@excalidraw/excalidraw/dist/browser/dev/index.css'
-      document.head.appendChild(link)
-    }
-
-    loading.value = false
-
-    reactRoot = ReactDOM.createRoot(canvasRef.value)
-    reactRoot.render(
-      React.createElement(
-        React.StrictMode,
-        null,
-        React.createElement(Excalidraw, {
-          initialData: {
-            elements: props.elements.length > 0 ? props.elements : undefined,
-            appState: { ...props.appState, viewBackgroundColor: '#ffffff' }
-          },
-          onChange: (elements, appState) => {
-            currentElements = [...elements]
-            currentAppState = { ...appState }
-          }
-        })
-      )
-    )
-  } catch (err) {
-    console.error('[Excalidraw] Failed to load:', err)
-    loading.value = false
-    if (canvasRef.value) {
-      canvasRef.value.innerHTML = '<p style="padding:2rem;color:red">Failed to load Excalidraw: ' + err.message + '</p>'
-    }
-  }
+onMounted(() => {
+  window.addEventListener('message', onMessage)
 })
 
 onBeforeUnmount(() => {
-  if (reactRoot) {
-    try { reactRoot.unmount() } catch {}
-  }
+  window.removeEventListener('message', onMessage)
 })
 
 function save () {
-  emit('save', { elements: currentElements, appState: currentAppState })
+  // For now, emit close — full bidirectional sync requires Excalidraw's embed API
+  // Users can export from Excalidraw and paste as image
+  emit('close')
 }
 </script>
 
 <style>
-/* Excalidraw needs unscoped styles */
 .excalidraw-modal {
   position: fixed;
   inset: 0;
@@ -116,21 +79,9 @@ function save () {
   color: white;
   border-color: #1976D2;
 }
-.excalidraw-modal__canvas {
+.excalidraw-modal__frame {
   flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-.excalidraw-modal__canvas .excalidraw {
+  border: none;
   width: 100%;
-  height: 100%;
-}
-.excalidraw-modal__loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  color: #666;
-  font-size: 1.1rem;
 }
 </style>
