@@ -14,6 +14,7 @@ import system from './core/system.mjs'
 
 import ctrlAuth from './controllers/auth.mjs'
 import ctrlCommon from './controllers/common.mjs'
+import ctrlMcp from './controllers/mcp.mjs'
 import ctrlPrint from './controllers/print.mjs'
 import ctrlSsl from './controllers/ssl.mjs'
 import ctrlWs from './controllers/ws.mjs'
@@ -228,6 +229,7 @@ export async function init () {
   })
 
   app.use('/', ctrlAuth())
+  app.use('/api/mcp', ctrlMcp())
   app.use('/', ctrlPrint())
   app.use('/', ctrlCommon())
 
