@@ -4,17 +4,28 @@
     .page-header-text
       h1.page-header-title {{ pageStore.title }}
       p.page-header-desc(v-if='pageStore.description') {{ pageStore.description }}
-    q-btn.page-header-edit(
-      v-if='userStore.authenticated && userStore.can(`write:pages`)'
-      flat
-      no-caps
-      icon='las la-edit'
-      label='Editar'
-      color='primary'
-      size='sm'
-      style='border-radius: 8px; padding: 4px 14px;'
-      @click='editPage'
-    )
+    .page-header-actions
+      q-btn.page-header-print(
+        flat
+        no-caps
+        icon='las la-file-pdf'
+        label='PDF'
+        color='grey-7'
+        size='sm'
+        style='border-radius: 8px; padding: 4px 14px;'
+        @click='openPrintView'
+      )
+      q-btn.page-header-edit(
+        v-if='userStore.authenticated && userStore.can(`write:pages`)'
+        flat
+        no-caps
+        icon='las la-edit'
+        label='Editar'
+        color='primary'
+        size='sm'
+        style='border-radius: 8px; padding: 4px 14px;'
+        @click='editPage'
+      )
 .page-header.row(v-else)
   .col-auto.q-pl-md.flex.items-center
     q-icon.rounded-borders(:name='pageStore.icon' size='64px' color='primary')
@@ -138,7 +149,12 @@ async function editPage () {
   $q.loading.hide()
 }
 
-function printPage () { window.print() }
+function openPrintView () {
+  const pageId = pageStore.id
+  if (pageId) {
+    window.open(`/_print/${pageId}`, '_blank')
+  }
+}
 </script>
 
 <style lang="scss">
@@ -160,9 +176,17 @@ function printPage () { window.print() }
   flex: 1;
 }
 
-.page-header-edit {
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
   flex-shrink: 0;
   margin-top: 4px;
+}
+
+.page-header-edit,
+.page-header-print {
+  flex-shrink: 0;
 }
 
 .page-header-title {
