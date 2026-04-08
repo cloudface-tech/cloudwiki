@@ -114,7 +114,6 @@ import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
 
 import { MermaidExtension } from './editor/MermaidExtension.js'
-import { ExcalidrawExtension } from './editor/ExcalidrawExtension.js'
 import DiagramToolbarMenu from './editor/DiagramToolbarMenu.vue'
 
 import { useMeta, useQuasar, setCssVar } from 'quasar'
@@ -775,8 +774,7 @@ function init () {
       TextAlign,
       TextStyle,
       Typography,
-      MermaidExtension,
-      ExcalidrawExtension
+      MermaidExtension
     ],
     onCreate: ({ editor }) => {
       // Ensure content is populated on editor creation
@@ -805,8 +803,6 @@ function insertTable () {
 function insertDiagram (type) {
   if (type === 'mermaid') {
     editor.value.chain().focus().insertContent({ type: 'mermaidBlock' }).run()
-  } else if (type === 'excalidraw') {
-    editor.value.chain().focus().insertContent({ type: 'excalidrawBlock' }).run()
   }
 }
 function snapshot () {
