@@ -71,20 +71,22 @@
         :disabled='menuItem.disabled && menuItem.disabled()'
         )
     DiagramToolbarMenu(@insert='insertDiagram')
-    //- q-space
-    //- q-btn(
-    //-   size='sm'
-    //-   unelevated
-    //-   color='red'
-    //-   label='Test'
-    //-   @click='snapshot'
-    //- )
-  //- q-scroll-area(
-  //-   :thumb-style='thumbStyle'
-  //-   :bar-style='barStyle'
-  //-   style='height: 100%;'
-  //-   )
-  editor-content(:editor='editor')
+    q-space
+    q-btn(
+      flat
+      :icon='splitView ? "mdi-eye-off" : "mdi-eye"'
+      padding='xs'
+      :color='splitView ? "primary" : "grey-10"'
+      @click='splitView = !splitView'
+      :aria-label='splitView ? "Hide preview" : "Show preview"'
+      )
+        q-tooltip {{ splitView ? 'Hide Preview' : 'Split View (MD / Preview)' }}
+  .wysiwyg-split(:class='{ "wysiwyg-split--active": splitView }')
+    .wysiwyg-split__editor
+      editor-content(:editor='editor')
+    .wysiwyg-split__preview(v-if='splitView')
+      .wysiwyg-split__preview-label PREVIEW
+      .wysiwyg-split__preview-content.page-contents(v-html='previewHtml')
 </template>
 
 <script setup>
@@ -109,7 +111,7 @@ import TextAlign from '@tiptap/extension-text-align'
 import TextStyle from '@tiptap/extension-text-style'
 import Typography from '@tiptap/extension-typography'
 import { common, createLowlight } from 'lowlight'
-import { onBeforeUnmount, onMounted, reactive, shallowRef } from 'vue'
+import { onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue'
 import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
 
@@ -146,6 +148,15 @@ const { t } = useI18n()
 
 const state = reactive({
   collabEnabled: false
+})
+
+const splitView = ref(false)
+const previewHtml = ref('')
+
+watch(splitView, (val) => {
+  if (val && editor?.value) {
+    previewHtml.value = editor.value.getHTML()
+  }
 })
 
 let editor = null
@@ -789,10 +800,14 @@ function init () {
       editorStore.$patch({
         lastChangeTimestamp: DateTime.utc()
       })
+      const html = editor.getHTML()
       pageStore.$patch({
         content: JSON.stringify(editor.getJSON()),
-        render: editor.getHTML()
+        render: html
       })
+      if (splitView.value) {
+        previewHtml.value = html
+      }
     }
   })
 }
@@ -978,6 +993,43 @@ init()
       pointer-events: none;
       height: 0;
     }
+  }
+}
+
+.wysiwyg-split {
+  height: 100%;
+
+  &--active {
+    display: flex;
+  }
+
+  &__editor {
+    flex: 1;
+    overflow-y: auto;
+    min-width: 0;
+  }
+
+  &__preview {
+    flex: 1;
+    overflow-y: auto;
+    border-left: 1px solid $grey-4;
+    background: #fafafa;
+    min-width: 0;
+  }
+
+  &__preview-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #94a3b8;
+    padding: 8px 16px 4px;
+    border-bottom: 1px solid #e2e8f0;
+    background: #f1f5f9;
+  }
+
+  &__preview-content {
+    padding: 16px;
   }
 }
 </style>
