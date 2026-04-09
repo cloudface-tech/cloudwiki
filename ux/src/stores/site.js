@@ -274,8 +274,13 @@ export const useSiteStore = defineStore('site', {
         function flatten (items, depth) {
           for (const item of items) {
             const hasChildren = item.children && item.children.length > 0
-            if (hasChildren) {
-              flatList.push({ id: item.id, type: 'folder', label: item.label, icon: item.icon, target: item.target, depth })
+            if (hasChildren && item.type === 'link') {
+              // Folder with a target — clickable link + expandable
+              flatList.push({ id: item.id, type: 'folderLink', label: item.label, icon: item.icon, target: item.target, depth })
+              flatten(item.children, depth + 1)
+            } else if (hasChildren) {
+              // Folder without target — just expandable
+              flatList.push({ id: item.id, type: 'folder', label: item.label, icon: item.icon, depth })
               flatten(item.children, depth + 1)
             } else if (item.type === 'link') {
               flatList.push({ id: item.id, type: 'link', label: item.label, icon: item.icon, target: item.target, depth })

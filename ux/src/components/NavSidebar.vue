@@ -16,7 +16,7 @@
             class="sidebar-nav-sep"
           />
 
-          <!-- Folder -->
+          <!-- Folder (without link) -->
           <q-item
             v-else-if="item.type === 'folder' && visible[idx]"
             clickable
@@ -25,6 +25,21 @@
             @click="toggle(idx)"
           >
             <q-item-section side>
+              <q-icon :name="open[idx] ? 'las la-angle-down' : 'las la-angle-right'" size="14px" />
+            </q-item-section>
+            <q-item-section class="text-wordbreak-all text-weight-medium">
+              {{ item.label }}
+            </q-item-section>
+          </q-item>
+
+          <!-- Folder with link (clickable label + expandable arrow) -->
+          <q-item
+            v-else-if="item.type === 'folderLink' && visible[idx]"
+            :to="item.target"
+            :style="{ paddingLeft: (12 + item.depth * 16) + 'px' }"
+            class="sidebar-nav-folder-link"
+          >
+            <q-item-section side @click.prevent.stop="toggle(idx)" class="sidebar-nav-folder-link__arrow">
               <q-icon :name="open[idx] ? 'las la-angle-down' : 'las la-angle-right'" size="14px" />
             </q-item-section>
             <q-item-section class="text-wordbreak-all text-weight-medium">
@@ -82,7 +97,7 @@ const parentIdx = computed(() => {
       continue
     }
     for (let j = i - 1; j >= 0; j--) {
-      if (items[j].type === 'folder' && items[j].depth === items[i].depth - 1) {
+      if ((items[j].type === 'folder' || items[j].type === 'folderLink') && items[j].depth === items[i].depth - 1) {
         map[i] = j
         break
       }
@@ -133,6 +148,34 @@ watch(() => pageStore.navigationId, (newValue) => {
     min-height: 32px;
     .q-icon { font-size: 14px; color: #94A3B8; }
     &:hover { background: #F1F5F9; color: #1E293B; }
+  }
+
+  &-folder-link {
+    color: #334155;
+    font-size: 0.825rem;
+    min-height: 32px;
+    font-weight: 500;
+
+    .q-icon { font-size: 14px; color: #94A3B8; }
+
+    &:hover { background: #F1F5F9; color: #1E293B; }
+
+    &.q-router-link--active {
+      background: #E6F1FE !important;
+      color: #006FEE !important;
+      font-weight: 600;
+    }
+
+    &__arrow {
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: background 0.15s;
+
+      &:hover {
+        background: rgba(148, 163, 184, 0.2);
+      }
+    }
   }
 
   .q-list > .q-item {
