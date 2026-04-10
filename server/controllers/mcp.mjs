@@ -93,8 +93,9 @@ export default function () {
         },
         readByPath: {
           method: 'GET',
-          path: '/api/mcp/pages/by-path/:path',
+          path: '/api/mcp/page-by-path',
           params: {
+            path: 'Page path (required, e.g. nees/transversal/arquitetura)',
             format: 'Content format: markdown (default), plain, html'
           }
         },
@@ -240,15 +241,16 @@ export default function () {
   })
 
   /**
-   * GET /api/mcp/pages/by-path/*
-   * Get full page content by path (e.g. /api/mcp/pages/by-path/nees/transversal/arquitetura)
+   * GET /api/mcp/page-by-path?path=nees/transversal/arquitetura
+   * Get full page content by path
    */
-  router.get('/pages/by-path/:path+', async (req, res) => {
+  router.get('/page-by-path', async (req, res) => {
     try {
       const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
       if (!site) return res.status(404).json({ error: 'Site not found' })
 
-      const pagePath = req.params.path || ''
+      const pagePath = req.query.path || ''
+      if (!pagePath) return res.status(400).json({ error: 'Query parameter "path" is required.' })
       const page = await WIKI.db.knex('pages')
         .where({ path: pagePath, siteId: site.id, publishState: 'published' })
         .select('id', 'path', 'title', 'description', 'content', 'render', 'locale', 'icon', 'tags', 'editor', 'createdAt', 'updatedAt')
