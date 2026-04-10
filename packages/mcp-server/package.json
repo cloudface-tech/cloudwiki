@@ -1,0 +1,16 @@
+{
+  "name": "@cloudwiki/mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for CloudWiki — connect Claude, Cursor, and AI agents to your wiki",
+  "main": "index.mjs",
+  "bin": {
+    "cloudwiki-mcp": "index.mjs"
+  },
+  "type": "module",
+  "license": "AGPL-3.0",
+  "repository": "https://github.com/cloudface-tech/cloudwiki",
+  "keywords": ["mcp", "cloudwiki", "claude", "cursor", "ai", "wiki"],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  }
+}
