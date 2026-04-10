@@ -243,12 +243,12 @@ export default function () {
    * GET /api/mcp/pages/by-path/*
    * Get full page content by path (e.g. /api/mcp/pages/by-path/nees/transversal/arquitetura)
    */
-  router.get('/pages/by-path/*', async (req, res) => {
+  router.get('/pages/by-path/:path+', async (req, res) => {
     try {
       const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
       if (!site) return res.status(404).json({ error: 'Site not found' })
 
-      const pagePath = req.params[0] || ''
+      const pagePath = req.params.path || ''
       const page = await WIKI.db.knex('pages')
         .where({ path: pagePath, siteId: site.id, publishState: 'published' })
         .select('id', 'path', 'title', 'description', 'content', 'render', 'locale', 'icon', 'tags', 'editor', 'createdAt', 'updatedAt')
