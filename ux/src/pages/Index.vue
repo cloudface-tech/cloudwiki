@@ -51,8 +51,13 @@ const wysiwygEditor = defineAsyncComponent({
   loadingComponent: LoadingGeneric
 })
 
+const milkdownEditor = defineAsyncComponent({
+  loader: () => import('../components/EditorMilkdown.vue'),
+  loadingComponent: LoadingGeneric
+})
+
 const editorComponents = {
-  markdown: wysiwygEditor,
+  markdown: milkdownEditor,
   wysiwyg: wysiwygEditor
 }
 
