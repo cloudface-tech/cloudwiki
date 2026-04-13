@@ -1,7 +1,15 @@
+import { createHash } from 'node:crypto'
 import express from 'express'
 import { marked } from 'marked'
 import TurndownService from 'turndown'
 import { v4 as uuidv4 } from 'uuid'
+
+/**
+ * Generate page hash from path + locale (Wiki.js requirement)
+ */
+function generatePageHash (path, locale) {
+  return createHash('sha256').update(`${locale}:${path}`).digest('hex')
+}
 
 const turndown = new TurndownService({
   headingStyle: 'atx',
@@ -103,33 +111,11 @@ async function ensureTables () {
   const knex = WIKI.db.knex
   if (typeof knex?.schema?.hasTable !== 'function') return
 
-  if (!(await knex.schema.hasTable('comments'))) {
-    await knex.schema.createTable('comments', table => {
-      table.uuid('id').primary()
-      table.uuid('pageId').notNullable().index()
-      table.uuid('parentId').nullable().index()
-      table.uuid('siteId').notNullable()
-      table.string('authorName').notNullable()
-      table.string('authorEmail').nullable()
-      table.text('content').notNullable()
-      table.specificType('mentions', 'varchar[]').defaultTo('{}')
-      table.timestamp('createdAt').defaultTo(knex.fn.now())
-      table.timestamp('updatedAt').defaultTo(knex.fn.now())
-    })
-  }
+  // comments table already exists in Wiki.js with columns:
+  // id, replyTo, content, render, name, email, ip, createdAt, updatedAt, pageId, authorId
+  // No need to create it
 
-  if (!(await knex.schema.hasTable('pagePermissions'))) {
-    await knex.schema.createTable('pagePermissions', table => {
-      table.uuid('id').primary()
-      table.uuid('pageId').notNullable().index()
-      table.uuid('siteId').notNullable()
-      table.string('subjectType').notNullable() // 'user' or 'group'
-      table.string('subjectId').notNullable()
-      table.string('level').notNullable() // 'read', 'write', 'admin'
-      table.timestamp('createdAt').defaultTo(knex.fn.now())
-      table.unique(['pageId', 'subjectType', 'subjectId'])
-    })
-  }
+  // pagePermissions table already exists in Wiki.js
 }
 
 export default function () {
@@ -591,19 +577,35 @@ export default function () {
       const now = new Date().toISOString()
       const pageId = uuidv4()
 
+      const pageLocale = locale || 'en'
+      const pageEditor = editor || (inputFormat === 'markdown' ? 'markdown' : 'html')
+
       const newPage = {
         id: pageId,
         path: pagePath,
+        hash: generatePageHash(pagePath, pageLocale),
         title,
         description: description || '',
         content: htmlContent,
         render: htmlContent,
         searchContent: stripHtml(htmlContent),
-        locale: locale || 'en',
+        locale: pageLocale,
         icon: icon || '',
         tags: tags || [],
-        editor: editor || (inputFormat === 'markdown' ? 'markdown' : 'html'),
+        editor: pageEditor,
+        contentType: pageEditor === 'markdown' ? 'markdown' : 'html',
         publishState: 'published',
+        config: {},
+        relations: [],
+        scripts: {},
+        historyData: {},
+        isBrowsable: true,
+        isSearchable: true,
+        ratingScore: 0,
+        ratingCount: 0,
+        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+        creatorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+        ownerId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
         siteId: site.id,
         createdAt: now,
         updatedAt: now
@@ -660,6 +662,7 @@ export default function () {
           }
         }
         updates.path = body.path
+        updates.hash = generatePageHash(body.path, body.locale || page.locale)
       }
       if (body.description !== undefined) updates.description = body.description
       if (body.locale !== undefined) updates.locale = body.locale
@@ -760,7 +763,7 @@ export default function () {
 
       const template = await WIKI.db.knex('pages')
         .where({ id: req.params.id, siteId: site.id })
-        .select('content', 'render', 'editor', 'icon', 'tags')
+        .select('content', 'render', 'editor', 'contentType', 'icon', 'tags')
         .first()
       if (!template) return res.status(404).json({ error: 'Template not found' })
 
@@ -779,19 +782,34 @@ export default function () {
       const now = new Date().toISOString()
       const pageId = uuidv4()
 
+      const tplLocale = locale || 'en'
+
       const newPage = {
         id: pageId,
         path: pagePath,
+        hash: generatePageHash(pagePath, tplLocale),
         title,
         description: description || '',
         content: template.content,
         render: template.render,
         searchContent: stripHtml(template.render || template.content || ''),
-        locale: locale || 'en',
+        locale: tplLocale,
         icon: template.icon || '',
         tags: tags || template.tags || [],
         editor: template.editor,
+        contentType: template.contentType || 'html',
         publishState: 'published',
+        config: {},
+        relations: [],
+        scripts: {},
+        historyData: {},
+        isBrowsable: true,
+        isSearchable: true,
+        ratingScore: 0,
+        ratingCount: 0,
+        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+        creatorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+        ownerId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
         siteId: site.id,
         createdAt: now,
         updatedAt: now
@@ -832,16 +850,16 @@ export default function () {
       if (!site) return res.status(404).json({ error: 'Site not found' })
 
       const comments = await WIKI.db.knex('comments')
-        .where({ pageId: req.params.pageId, siteId: site.id })
-        .select('id', 'pageId', 'parentId', 'authorName', 'authorEmail', 'content', 'mentions', 'createdAt', 'updatedAt')
+        .where({ pageId: req.params.pageId })
+        .select('id', 'pageId', 'replyTo', 'name', 'email', 'content', 'render', 'createdAt', 'updatedAt')
         .orderBy('createdAt', 'asc')
 
       // Build tree: top-level + replies
-      const topLevel = comments.filter(c => !c.parentId)
-      const replies = comments.filter(c => c.parentId)
+      const topLevel = comments.filter(c => !c.replyTo).map(c => ({ ...c, authorName: c.name, authorEmail: c.email }))
+      const replies = comments.filter(c => c.replyTo).map(c => ({ ...c, authorName: c.name, authorEmail: c.email }))
       const threaded = topLevel.map(c => ({
         ...c,
-        replies: replies.filter(r => r.parentId === c.id)
+        replies: replies.filter(r => r.replyTo === c.id)
       }))
 
       res.json({ comments: threaded, total: comments.length })
@@ -867,7 +885,7 @@ export default function () {
         .first()
       if (!page) return res.status(404).json({ error: 'Page not found' })
 
-      const { authorName, content, authorEmail, parentId, mentions } = req.body || {}
+      const { authorName, content, authorEmail, parentId } = req.body || {}
       if (!authorName || !content) {
         return res.status(400).json({ error: 'Fields "authorName" and "content" are required.' })
       }
@@ -881,17 +899,18 @@ export default function () {
       }
 
       const now = new Date().toISOString()
-      const commentId = uuidv4()
 
+      const commentId = uuidv4()
       const newComment = {
         id: commentId,
+        replyTo: parentId || null,
         pageId: req.params.pageId,
-        parentId: parentId || null,
-        siteId: site.id,
-        authorName,
-        authorEmail: authorEmail || null,
         content,
-        mentions: mentions || [],
+        render: content,
+        name: authorName,
+        email: authorEmail || '',
+        ip: req.ip || '0.0.0.0',
+        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
         createdAt: now,
         updatedAt: now
       }
@@ -901,10 +920,9 @@ export default function () {
       res.status(201).json({
         id: commentId,
         pageId: req.params.pageId,
-        parentId: newComment.parentId,
+        parentId: newComment.replyTo,
         authorName,
         content,
-        mentions: newComment.mentions,
         createdAt: now
       })
     } catch (err) {
@@ -924,13 +942,15 @@ export default function () {
       if (!site) return res.status(404).json({ error: 'Site not found' })
 
       const comment = await WIKI.db.knex('comments')
-        .where({ id: req.params.id, siteId: site.id })
+        .where({ id: req.params.id })
         .first()
       if (!comment) return res.status(404).json({ error: 'Comment not found' })
 
       const updates = {}
-      if (req.body.content !== undefined) updates.content = req.body.content
-      if (req.body.mentions !== undefined) updates.mentions = req.body.mentions
+      if (req.body.content !== undefined) {
+        updates.content = req.body.content
+        updates.render = req.body.content
+      }
       updates.updatedAt = new Date().toISOString()
 
       await WIKI.db.knex('comments')
@@ -954,13 +974,13 @@ export default function () {
       if (!site) return res.status(404).json({ error: 'Site not found' })
 
       const comment = await WIKI.db.knex('comments')
-        .where({ id: req.params.id, siteId: site.id })
+        .where({ id: req.params.id })
         .first()
       if (!comment) return res.status(404).json({ error: 'Comment not found' })
 
       // Delete replies first, then parent
       await WIKI.db.knex('comments')
-        .where({ parentId: req.params.id })
+        .where({ replyTo: req.params.id })
         .del()
       await WIKI.db.knex('comments')
         .where({ id: req.params.id })
@@ -1183,7 +1203,7 @@ export default function () {
 
       const sourcePage = await WIKI.db.knex('pages')
         .where({ id: pageId, siteId: site.id })
-        .select('id', 'path', 'title', 'description', 'content', 'render', 'searchContent', 'editor', 'icon', 'tags')
+        .select('id', 'path', 'title', 'description', 'content', 'render', 'searchContent', 'editor', 'contentType', 'icon', 'tags')
         .first()
       if (!sourcePage) return res.status(404).json({ error: 'Source page not found' })
 
@@ -1204,6 +1224,7 @@ export default function () {
       const translatedPage = {
         id: translatedId,
         path: newPath,
+        hash: generatePageHash(newPath, targetLocale),
         title: sourcePage.title,
         description: sourcePage.description,
         content: sourcePage.content,
@@ -1213,7 +1234,19 @@ export default function () {
         icon: sourcePage.icon || '',
         tags: [...(sourcePage.tags || []), `translated-from:${sourcePage.path}`],
         editor: sourcePage.editor,
+        contentType: sourcePage.contentType || 'html',
         publishState: 'draft',
+        config: {},
+        relations: [],
+        scripts: {},
+        historyData: {},
+        isBrowsable: true,
+        isSearchable: true,
+        ratingScore: 0,
+        ratingCount: 0,
+        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+        creatorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+        ownerId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
         siteId: site.id,
         createdAt: now,
         updatedAt: now
