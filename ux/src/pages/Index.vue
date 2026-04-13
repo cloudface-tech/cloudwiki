@@ -46,11 +46,6 @@ import PageCommentsPanel from '@/components/PageCommentsPanel.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SideDialog from '@/components/SideDialog.vue'
 
-const wysiwygEditor = defineAsyncComponent({
-  loader: () => import('../components/EditorWysiwyg.vue'),
-  loadingComponent: LoadingGeneric
-})
-
 const milkdownEditor = defineAsyncComponent({
   loader: () => import('../components/EditorMilkdown.vue'),
   loadingComponent: LoadingGeneric
@@ -58,7 +53,7 @@ const milkdownEditor = defineAsyncComponent({
 
 const editorComponents = {
   markdown: milkdownEditor,
-  wysiwyg: wysiwygEditor
+  wysiwyg: milkdownEditor
 }
 
 const $q = useQuasar()
