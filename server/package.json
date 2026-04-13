@@ -121,6 +121,7 @@
     "markdown-it-sub": "2.0.0",
     "markdown-it-sup": "2.0.0",
     "markdown-it-task-lists": "2.1.1",
+    "marked": "18.0.0",
     "mathjax": "3.2.2",
     "mime-types": "3.0.1",
     "ms": "2.1.3",

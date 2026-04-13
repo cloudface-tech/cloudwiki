@@ -254,6 +254,9 @@ importers:
       markdown-it-task-lists:
         specifier: 2.1.1
         version: 2.1.1
+      marked:
+        specifier: 18.0.0
+        version: 18.0.0
       mathjax:
         specifier: 3.2.2
         version: 3.2.2
@@ -4018,6 +4021,11 @@ packages:
 
   markdown-it@14.1.0:
     resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
+    hasBin: true
+
+  marked@18.0.0:
+    resolution: {integrity: sha512-2e7Qiv/HJSXj8rDEpgTvGKsP8yYtI9xXHKDnrftrmnrJPaFNM7VRb2YCzWaX4BP1iCJ/XPduzDJZMFoqTCcIMA==}
+    engines: {node: '>= 20'}
     hasBin: true
 
   math-intrinsics@1.1.0:
@@ -9813,6 +9821,8 @@ snapshots:
       mdurl: 2.0.0
       punycode.js: 2.3.1
       uc.micro: 2.1.0
+
+  marked@18.0.0: {}
 
   math-intrinsics@1.1.0: {}
 

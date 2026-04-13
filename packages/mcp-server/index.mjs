@@ -244,6 +244,327 @@ server.tool(
   }
 )
 
+// -- Write Tools --
+
+server.tool(
+  'create-page',
+  'Create a new wiki page',
+  {
+    title: z.string().describe('Page title (required)'),
+    path: z.string().describe('Page path/slug (required, e.g. docs/getting-started)'),
+    content: z.string().optional().describe('Page content'),
+    format: z.enum(['markdown', 'html']).optional().describe('Content format (default: html)'),
+    description: z.string().optional().describe('Page description/summary'),
+    locale: z.string().optional().describe('Locale (default: en)'),
+    tags: z.array(z.string()).optional().describe('Tags array'),
+    icon: z.string().optional().describe('Icon class (e.g. las la-home)')
+  },
+  async (params) => {
+    const body = {
+      title: params.title,
+      path: params.path,
+      content: params.content || '',
+      format: params.format || 'html',
+      description: params.description || '',
+      locale: params.locale || 'en',
+      tags: params.tags || [],
+      icon: params.icon || ''
+    }
+    const data = await apiFetch('/pages', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
+    return {
+      content: [{
+        type: 'text',
+        text: `Page created: "${data.title}" at /${data.path} (ID: ${data.id})`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'update-page',
+  'Update an existing wiki page',
+  {
+    id: z.string().describe('Page UUID (required)'),
+    title: z.string().optional().describe('New title'),
+    path: z.string().optional().describe('New path'),
+    content: z.string().optional().describe('New content'),
+    format: z.enum(['markdown', 'html']).optional().describe('Content format'),
+    description: z.string().optional().describe('New description'),
+    locale: z.string().optional().describe('New locale'),
+    tags: z.array(z.string()).optional().describe('New tags'),
+    icon: z.string().optional().describe('New icon'),
+    publishState: z.enum(['published', 'draft']).optional().describe('Publish state')
+  },
+  async (params) => {
+    const { id, ...body } = params
+    const data = await apiFetch(`/pages/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(body)
+    })
+    return {
+      content: [{
+        type: 'text',
+        text: `Page updated: "${data.title}" at /${data.path} (ID: ${data.id})`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'delete-page',
+  'Delete a wiki page permanently',
+  {
+    id: z.string().describe('Page UUID to delete')
+  },
+  async (params) => {
+    const data = await apiFetch(`/pages/${params.id}`, { method: 'DELETE' })
+    return {
+      content: [{
+        type: 'text',
+        text: `Page deleted: /${data.path} (ID: ${data.id})`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'list-templates',
+  'List available page templates',
+  {},
+  async () => {
+    const data = await apiFetch('/templates')
+    const text = data.templates.map(t =>
+      `**${t.title}** — ID: ${t.id}\n  Path: ${t.path} | ${t.description || '(no description)'}`
+    ).join('\n\n')
+    return {
+      content: [{
+        type: 'text',
+        text: `${data.total} templates found:\n\n${text || '(no templates)'}`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'create-from-template',
+  'Create a new page from an existing template',
+  {
+    templateId: z.string().describe('Template page UUID'),
+    title: z.string().describe('New page title'),
+    path: z.string().describe('New page path'),
+    locale: z.string().optional().describe('Locale (default: en)'),
+    tags: z.array(z.string()).optional().describe('Tags for new page'),
+    description: z.string().optional().describe('Page description')
+  },
+  async (params) => {
+    const body = {
+      title: params.title,
+      path: params.path,
+      locale: params.locale,
+      tags: params.tags,
+      description: params.description
+    }
+    const data = await apiFetch(`/templates/${params.templateId}/create`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
+    return {
+      content: [{
+        type: 'text',
+        text: `Page created from template: "${data.title}" at /${data.path} (ID: ${data.id})`
+      }]
+    }
+  }
+)
+
+// -- Comments Tools --
+
+server.tool(
+  'list-comments',
+  'List comments on a wiki page (threaded)',
+  {
+    pageId: z.string().describe('Page UUID')
+  },
+  async (params) => {
+    const data = await apiFetch(`/pages/${params.pageId}/comments`)
+    const text = data.comments.map(c => {
+      let line = `**${c.authorName}** (${c.createdAt}):\n  ${c.content}`
+      if (c.replies?.length) {
+        line += '\n' + c.replies.map(r =>
+          `  ↳ **${r.authorName}**: ${r.content}`
+        ).join('\n')
+      }
+      return line
+    }).join('\n\n')
+    return {
+      content: [{
+        type: 'text',
+        text: `${data.total} comments:\n\n${text || '(no comments)'}`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'add-comment',
+  'Add a comment to a wiki page',
+  {
+    pageId: z.string().describe('Page UUID'),
+    authorName: z.string().describe('Author name'),
+    content: z.string().describe('Comment text'),
+    authorEmail: z.string().optional().describe('Author email'),
+    parentId: z.string().optional().describe('Parent comment UUID for reply'),
+    mentions: z.array(z.string()).optional().describe('Mentioned usernames')
+  },
+  async (params) => {
+    const { pageId, ...body } = params
+    const data = await apiFetch(`/pages/${pageId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
+    return {
+      content: [{
+        type: 'text',
+        text: `Comment added by ${data.authorName} (ID: ${data.id})${data.parentId ? ' [reply]' : ''}`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'delete-comment',
+  'Delete a comment and its replies',
+  {
+    id: z.string().describe('Comment UUID')
+  },
+  async (params) => {
+    const data = await apiFetch(`/comments/${params.id}`, { method: 'DELETE' })
+    return {
+      content: [{
+        type: 'text',
+        text: `Comment deleted (ID: ${data.id})`
+      }]
+    }
+  }
+)
+
+// -- Permissions Tools --
+
+server.tool(
+  'list-permissions',
+  'List permissions for a wiki page',
+  {
+    pageId: z.string().describe('Page UUID')
+  },
+  async (params) => {
+    const data = await apiFetch(`/pages/${params.pageId}/permissions`)
+    const text = data.permissions.map(p =>
+      `${p.subjectType}:${p.subjectId} → ${p.level} (ID: ${p.id})`
+    ).join('\n')
+    return {
+      content: [{
+        type: 'text',
+        text: `${data.total} permissions:\n\n${text || '(no custom permissions)'}`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'set-permission',
+  'Set a permission on a wiki page (creates or updates)',
+  {
+    pageId: z.string().describe('Page UUID'),
+    subjectType: z.enum(['user', 'group']).describe('Subject type'),
+    subjectId: z.string().describe('User or group ID'),
+    level: z.enum(['read', 'write', 'admin']).describe('Permission level')
+  },
+  async (params) => {
+    const { pageId, ...body } = params
+    const data = await apiFetch(`/pages/${pageId}/permissions`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
+    const action = data.updated ? 'updated' : 'created'
+    return {
+      content: [{
+        type: 'text',
+        text: `Permission ${action}: ${data.subjectType}:${data.subjectId} → ${data.level}`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'remove-permission',
+  'Remove a permission from a page',
+  {
+    id: z.string().describe('Permission UUID')
+  },
+  async (params) => {
+    const data = await apiFetch(`/permissions/${params.id}`, { method: 'DELETE' })
+    return {
+      content: [{
+        type: 'text',
+        text: `Permission removed (ID: ${data.id})`
+      }]
+    }
+  }
+)
+
+// -- AI Tools --
+
+server.tool(
+  'ask',
+  'Ask a question about wiki content — returns relevant pages ranked by relevance',
+  {
+    question: z.string().describe('Question to ask about wiki content'),
+    limit: z.number().optional().describe('Max results (default: 5, max: 10)'),
+    locale: z.string().optional().describe('Filter by locale'),
+    path: z.string().optional().describe('Filter by path prefix')
+  },
+  async (params) => {
+    const data = await apiFetch('/ask', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    })
+    const text = data.results.map(r =>
+      `**${r.title}** (score: ${r.score})\n  /${r.path}\n  ${r.excerpt}`
+    ).join('\n\n')
+    return {
+      content: [{
+        type: 'text',
+        text: `Q: "${data.question}" — ${data.total} results (${data.method} search):\n\n${text || '(no results)'}`
+      }]
+    }
+  }
+)
+
+server.tool(
+  'translate-page',
+  'Create a translated copy of a page in another locale (created as draft)',
+  {
+    pageId: z.string().describe('Source page UUID'),
+    targetLocale: z.string().describe('Target locale (e.g. en, pt, es)'),
+    targetPath: z.string().optional().describe('Custom path for translated page')
+  },
+  async (params) => {
+    const data = await apiFetch('/translate', {
+      method: 'POST',
+      body: JSON.stringify(params)
+    })
+    return {
+      content: [{
+        type: 'text',
+        text: `Translated page created: "${data.title}" at /${data.path} (${data.locale})\nSource: /${data.sourcePath}\nStatus: ${data.publishState}\n${data.note}`
+      }]
+    }
+  }
+)
+
 // -----------------------------------------------------------------------
 // Start
 // -----------------------------------------------------------------------

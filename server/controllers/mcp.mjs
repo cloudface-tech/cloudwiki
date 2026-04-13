@@ -1,5 +1,7 @@
 import express from 'express'
+import { marked } from 'marked'
 import TurndownService from 'turndown'
+import { v4 as uuidv4 } from 'uuid'
 
 const turndown = new TurndownService({
   headingStyle: 'atx',
@@ -27,6 +29,14 @@ function htmlToMarkdown (html) {
 }
 
 /**
+ * Convert Markdown to HTML for storage
+ */
+function markdownToHtml (md) {
+  if (!md) return ''
+  return marked.parse(md, { async: false })
+}
+
+/**
  * API Key authentication middleware
  */
 function authenticateApiKey (req, res, next) {
@@ -47,8 +57,97 @@ function authenticateApiKey (req, res, next) {
   next()
 }
 
+/**
+ * Simple cosine similarity between two vectors
+ */
+function cosineSimilarity (a, b) {
+  if (!a || !b || a.length !== b.length) return 0
+  let dot = 0; let magA = 0; let magB = 0
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i]
+    magA += a[i] * a[i]
+    magB += b[i] * b[i]
+  }
+  return dot / (Math.sqrt(magA) * Math.sqrt(magB) || 1)
+}
+
+/**
+ * Get embedding pipeline (lazy-loaded)
+ */
+let pipelineInstance = null
+async function getEmbeddingPipeline () {
+  if (pipelineInstance) return pipelineInstance
+  try {
+    const { pipeline } = await import('@xenova/transformers')
+    pipelineInstance = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2')
+    return pipelineInstance
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Generate embedding for text
+ */
+async function generateEmbedding (text) {
+  const pipe = await getEmbeddingPipeline()
+  if (!pipe) return null
+  const output = await pipe(text, { pooling: 'mean', normalize: true })
+  return Array.from(output.data)
+}
+
+/**
+ * Ensure comments and page_permissions tables exist
+ */
+async function ensureTables () {
+  const knex = WIKI.db.knex
+  if (typeof knex?.schema?.hasTable !== 'function') return
+
+  if (!(await knex.schema.hasTable('comments'))) {
+    await knex.schema.createTable('comments', table => {
+      table.uuid('id').primary()
+      table.uuid('pageId').notNullable().index()
+      table.uuid('parentId').nullable().index()
+      table.uuid('siteId').notNullable()
+      table.string('authorName').notNullable()
+      table.string('authorEmail').nullable()
+      table.text('content').notNullable()
+      table.specificType('mentions', 'varchar[]').defaultTo('{}')
+      table.timestamp('createdAt').defaultTo(knex.fn.now())
+      table.timestamp('updatedAt').defaultTo(knex.fn.now())
+    })
+  }
+
+  if (!(await knex.schema.hasTable('pagePermissions'))) {
+    await knex.schema.createTable('pagePermissions', table => {
+      table.uuid('id').primary()
+      table.uuid('pageId').notNullable().index()
+      table.uuid('siteId').notNullable()
+      table.string('subjectType').notNullable() // 'user' or 'group'
+      table.string('subjectId').notNullable()
+      table.string('level').notNullable() // 'read', 'write', 'admin'
+      table.timestamp('createdAt').defaultTo(knex.fn.now())
+      table.unique(['pageId', 'subjectType', 'subjectId'])
+    })
+  }
+}
+
 export default function () {
   const router = express.Router()
+
+  // Ensure tables exist on first request
+  let tablesReady = false
+  router.use(async (req, res, next) => {
+    if (!tablesReady) {
+      try {
+        await ensureTables()
+      } catch (err) {
+        WIKI.logger.warn(`MCP ensureTables: ${err.message}`)
+      }
+      tablesReady = true
+    }
+    next()
+  })
 
   // Apply API key auth to all MCP routes
   router.use(authenticateApiKey)
@@ -61,13 +160,20 @@ export default function () {
     res.json({
       name: 'CloudWiki',
       description: 'Knowledge base content API for AI agents',
-      version: '2.0.0',
+      version: '3.0.0',
       capabilities: {
         pages: {
           list: true,
           read: true,
           search: true,
+          create: true,
+          update: true,
+          delete: true,
           formats: ['markdown', 'plain', 'html']
+        },
+        templates: {
+          list: true,
+          createFrom: true
         }
       },
       endpoints: {
@@ -114,6 +220,29 @@ export default function () {
             path: 'Filter by path prefix',
             locale: 'Filter by locale'
           }
+        },
+        create: {
+          method: 'POST',
+          path: '/api/mcp/pages',
+          body: '{ "title": "string (required)", "path": "string (required)", "content": "string", "format": "markdown|html", "description": "string", "locale": "string", "tags": ["string"], "icon": "string" }'
+        },
+        update: {
+          method: 'PUT',
+          path: '/api/mcp/pages/:id',
+          body: '{ "title?": "string", "path?": "string", "content?": "string", "format?": "markdown|html", "description?": "string", "locale?": "string", "tags?": ["string"], "publishState?": "string" }'
+        },
+        delete: {
+          method: 'DELETE',
+          path: '/api/mcp/pages/:id'
+        },
+        templates: {
+          method: 'GET',
+          path: '/api/mcp/templates'
+        },
+        createFromTemplate: {
+          method: 'POST',
+          path: '/api/mcp/templates/:id/create',
+          body: '{ "title": "string (required)", "path": "string (required)", "locale?": "string", "tags?": ["string"] }'
         }
       },
       authentication: {
@@ -420,6 +549,691 @@ export default function () {
       })
     } catch (err) {
       WIKI.logger.warn(`MCP /search failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // =========================================================================
+  // WRITE ENDPOINTS
+  // =========================================================================
+
+  /**
+   * POST /api/mcp/pages
+   * Create a new page
+   * Body: { title, path, content, format?, description?, locale?, tags?, icon?, editor? }
+   */
+  router.post('/pages', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const { title, path: pagePath, content, format, description, locale, tags, icon, editor } = req.body || {}
+
+      if (!title || !pagePath) {
+        return res.status(400).json({ error: 'Fields "title" and "path" are required.' })
+      }
+
+      // Check for duplicate path
+      const existing = await WIKI.db.knex('pages')
+        .where({ path: pagePath, siteId: site.id })
+        .first()
+      if (existing) {
+        return res.status(409).json({ error: `Page already exists at path "${pagePath}".` })
+      }
+
+      // Convert content based on format
+      const inputFormat = format || 'html'
+      let htmlContent = ''
+      if (content) {
+        htmlContent = inputFormat === 'markdown' ? markdownToHtml(content) : content
+      }
+
+      const now = new Date().toISOString()
+      const pageId = uuidv4()
+
+      const newPage = {
+        id: pageId,
+        path: pagePath,
+        title,
+        description: description || '',
+        content: htmlContent,
+        render: htmlContent,
+        searchContent: stripHtml(htmlContent),
+        locale: locale || 'en',
+        icon: icon || '',
+        tags: tags || [],
+        editor: editor || (inputFormat === 'markdown' ? 'markdown' : 'html'),
+        publishState: 'published',
+        siteId: site.id,
+        createdAt: now,
+        updatedAt: now
+      }
+
+      await WIKI.db.knex('pages').insert(newPage)
+
+      res.status(201).json({
+        id: pageId,
+        path: pagePath,
+        title,
+        description: newPage.description,
+        locale: newPage.locale,
+        icon: newPage.icon,
+        tags: newPage.tags,
+        editor: newPage.editor,
+        createdAt: now,
+        updatedAt: now
+      })
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /pages failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * PUT /api/mcp/pages/:id
+   * Update an existing page
+   * Body: { title?, path?, content?, format?, description?, locale?, tags?, icon?, editor?, publishState? }
+   */
+  router.put('/pages/:id', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const page = await WIKI.db.knex('pages')
+        .where({ id: req.params.id, siteId: site.id })
+        .first()
+      if (!page) return res.status(404).json({ error: 'Page not found' })
+
+      const updates = {}
+      const body = req.body || {}
+
+      if (body.title !== undefined) updates.title = body.title
+      if (body.path !== undefined) {
+        // Check path uniqueness if changing
+        if (body.path !== page.path) {
+          const dup = await WIKI.db.knex('pages')
+            .where({ path: body.path, siteId: site.id })
+            .whereNot('id', req.params.id)
+            .first()
+          if (dup) {
+            return res.status(409).json({ error: `Path "${body.path}" is already in use.` })
+          }
+        }
+        updates.path = body.path
+      }
+      if (body.description !== undefined) updates.description = body.description
+      if (body.locale !== undefined) updates.locale = body.locale
+      if (body.icon !== undefined) updates.icon = body.icon
+      if (body.tags !== undefined) updates.tags = body.tags
+      if (body.editor !== undefined) updates.editor = body.editor
+      if (body.publishState !== undefined) updates.publishState = body.publishState
+
+      if (body.content !== undefined) {
+        const inputFormat = body.format || 'html'
+        const htmlContent = inputFormat === 'markdown' ? markdownToHtml(body.content) : body.content
+        updates.content = htmlContent
+        updates.render = htmlContent
+        updates.searchContent = stripHtml(htmlContent)
+      }
+
+      updates.updatedAt = new Date().toISOString()
+
+      await WIKI.db.knex('pages')
+        .where({ id: req.params.id })
+        .update(updates)
+
+      const updated = await WIKI.db.knex('pages')
+        .where({ id: req.params.id })
+        .select('id', 'path', 'title', 'description', 'locale', 'icon', 'tags', 'editor', 'publishState', 'createdAt', 'updatedAt')
+        .first()
+
+      res.json(updated)
+    } catch (err) {
+      WIKI.logger.warn(`MCP PUT /pages/:id failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * DELETE /api/mcp/pages/:id
+   * Delete a page
+   */
+  router.delete('/pages/:id', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const page = await WIKI.db.knex('pages')
+        .where({ id: req.params.id, siteId: site.id })
+        .first()
+      if (!page) return res.status(404).json({ error: 'Page not found' })
+
+      await WIKI.db.knex('pages')
+        .where({ id: req.params.id })
+        .del()
+
+      res.json({ deleted: true, id: req.params.id, path: page.path })
+    } catch (err) {
+      WIKI.logger.warn(`MCP DELETE /pages/:id failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // =========================================================================
+  // TEMPLATES
+  // =========================================================================
+
+  /**
+   * GET /api/mcp/templates
+   * List available page templates
+   */
+  router.get('/templates', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const templates = await WIKI.db.knex('pages')
+        .where({ siteId: site.id })
+        .where(function () {
+          this.where('path', 'ILIKE', 'templates/%')
+            .orWhereRaw("tags @> ARRAY['template']::varchar[]")
+        })
+        .select('id', 'path', 'title', 'description', 'locale', 'icon', 'tags', 'editor', 'updatedAt')
+        .orderBy('title')
+
+      res.json({ templates, total: templates.length })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /templates failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * POST /api/mcp/templates/:id/create
+   * Create a new page from a template
+   * Body: { title, path, locale?, tags?, description? }
+   */
+  router.post('/templates/:id/create', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const template = await WIKI.db.knex('pages')
+        .where({ id: req.params.id, siteId: site.id })
+        .select('content', 'render', 'editor', 'icon', 'tags')
+        .first()
+      if (!template) return res.status(404).json({ error: 'Template not found' })
+
+      const { title, path: pagePath, locale, tags, description } = req.body || {}
+      if (!title || !pagePath) {
+        return res.status(400).json({ error: 'Fields "title" and "path" are required.' })
+      }
+
+      const existing = await WIKI.db.knex('pages')
+        .where({ path: pagePath, siteId: site.id })
+        .first()
+      if (existing) {
+        return res.status(409).json({ error: `Page already exists at path "${pagePath}".` })
+      }
+
+      const now = new Date().toISOString()
+      const pageId = uuidv4()
+
+      const newPage = {
+        id: pageId,
+        path: pagePath,
+        title,
+        description: description || '',
+        content: template.content,
+        render: template.render,
+        searchContent: stripHtml(template.render || template.content || ''),
+        locale: locale || 'en',
+        icon: template.icon || '',
+        tags: tags || template.tags || [],
+        editor: template.editor,
+        publishState: 'published',
+        siteId: site.id,
+        createdAt: now,
+        updatedAt: now
+      }
+
+      await WIKI.db.knex('pages').insert(newPage)
+
+      res.status(201).json({
+        id: pageId,
+        path: pagePath,
+        title,
+        description: newPage.description,
+        locale: newPage.locale,
+        icon: newPage.icon,
+        tags: newPage.tags,
+        editor: newPage.editor,
+        templateId: req.params.id,
+        createdAt: now,
+        updatedAt: now
+      })
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /templates/:id/create failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // =========================================================================
+  // COMMENTS
+  // =========================================================================
+
+  /**
+   * GET /api/mcp/pages/:pageId/comments
+   * List comments for a page (threaded)
+   */
+  router.get('/pages/:pageId/comments', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const comments = await WIKI.db.knex('comments')
+        .where({ pageId: req.params.pageId, siteId: site.id })
+        .select('id', 'pageId', 'parentId', 'authorName', 'authorEmail', 'content', 'mentions', 'createdAt', 'updatedAt')
+        .orderBy('createdAt', 'asc')
+
+      // Build tree: top-level + replies
+      const topLevel = comments.filter(c => !c.parentId)
+      const replies = comments.filter(c => c.parentId)
+      const threaded = topLevel.map(c => ({
+        ...c,
+        replies: replies.filter(r => r.parentId === c.id)
+      }))
+
+      res.json({ comments: threaded, total: comments.length })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /pages/:pageId/comments failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * POST /api/mcp/pages/:pageId/comments
+   * Create a comment on a page
+   * Body: { authorName, content, authorEmail?, parentId?, mentions? }
+   */
+  router.post('/pages/:pageId/comments', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      // Verify page exists
+      const page = await WIKI.db.knex('pages')
+        .where({ id: req.params.pageId, siteId: site.id })
+        .first()
+      if (!page) return res.status(404).json({ error: 'Page not found' })
+
+      const { authorName, content, authorEmail, parentId, mentions } = req.body || {}
+      if (!authorName || !content) {
+        return res.status(400).json({ error: 'Fields "authorName" and "content" are required.' })
+      }
+
+      // Verify parent exists if replying
+      if (parentId) {
+        const parent = await WIKI.db.knex('comments')
+          .where({ id: parentId, pageId: req.params.pageId })
+          .first()
+        if (!parent) return res.status(404).json({ error: 'Parent comment not found' })
+      }
+
+      const now = new Date().toISOString()
+      const commentId = uuidv4()
+
+      const newComment = {
+        id: commentId,
+        pageId: req.params.pageId,
+        parentId: parentId || null,
+        siteId: site.id,
+        authorName,
+        authorEmail: authorEmail || null,
+        content,
+        mentions: mentions || [],
+        createdAt: now,
+        updatedAt: now
+      }
+
+      await WIKI.db.knex('comments').insert(newComment)
+
+      res.status(201).json({
+        id: commentId,
+        pageId: req.params.pageId,
+        parentId: newComment.parentId,
+        authorName,
+        content,
+        mentions: newComment.mentions,
+        createdAt: now
+      })
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /pages/:pageId/comments failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * PUT /api/mcp/comments/:id
+   * Update a comment
+   * Body: { content?, mentions? }
+   */
+  router.put('/comments/:id', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const comment = await WIKI.db.knex('comments')
+        .where({ id: req.params.id, siteId: site.id })
+        .first()
+      if (!comment) return res.status(404).json({ error: 'Comment not found' })
+
+      const updates = {}
+      if (req.body.content !== undefined) updates.content = req.body.content
+      if (req.body.mentions !== undefined) updates.mentions = req.body.mentions
+      updates.updatedAt = new Date().toISOString()
+
+      await WIKI.db.knex('comments')
+        .where({ id: req.params.id })
+        .update(updates)
+
+      res.json({ id: req.params.id, ...updates })
+    } catch (err) {
+      WIKI.logger.warn(`MCP PUT /comments/:id failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * DELETE /api/mcp/comments/:id
+   * Delete a comment (and its replies)
+   */
+  router.delete('/comments/:id', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const comment = await WIKI.db.knex('comments')
+        .where({ id: req.params.id, siteId: site.id })
+        .first()
+      if (!comment) return res.status(404).json({ error: 'Comment not found' })
+
+      // Delete replies first, then parent
+      await WIKI.db.knex('comments')
+        .where({ parentId: req.params.id })
+        .del()
+      await WIKI.db.knex('comments')
+        .where({ id: req.params.id })
+        .del()
+
+      res.json({ deleted: true, id: req.params.id })
+    } catch (err) {
+      WIKI.logger.warn(`MCP DELETE /comments/:id failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // =========================================================================
+  // PAGE PERMISSIONS
+  // =========================================================================
+
+  /**
+   * GET /api/mcp/pages/:pageId/permissions
+   * List permissions for a page
+   */
+  router.get('/pages/:pageId/permissions', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const permissions = await WIKI.db.knex('pagePermissions')
+        .where({ pageId: req.params.pageId, siteId: site.id })
+        .select('id', 'pageId', 'subjectType', 'subjectId', 'level', 'createdAt')
+        .orderBy('createdAt')
+
+      res.json({ permissions, total: permissions.length })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /pages/:pageId/permissions failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * POST /api/mcp/pages/:pageId/permissions
+   * Add a permission to a page
+   * Body: { subjectType: 'user'|'group', subjectId, level: 'read'|'write'|'admin' }
+   */
+  router.post('/pages/:pageId/permissions', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const { subjectType, subjectId, level } = req.body || {}
+      if (!subjectType || !subjectId || !level) {
+        return res.status(400).json({ error: 'Fields "subjectType", "subjectId", and "level" are required.' })
+      }
+      if (!['user', 'group'].includes(subjectType)) {
+        return res.status(400).json({ error: 'subjectType must be "user" or "group".' })
+      }
+      if (!['read', 'write', 'admin'].includes(level)) {
+        return res.status(400).json({ error: 'level must be "read", "write", or "admin".' })
+      }
+
+      // Verify page exists
+      const page = await WIKI.db.knex('pages')
+        .where({ id: req.params.pageId, siteId: site.id })
+        .first()
+      if (!page) return res.status(404).json({ error: 'Page not found' })
+
+      const permId = uuidv4()
+      const now = new Date().toISOString()
+
+      // Upsert: update level if permission already exists
+      const existing = await WIKI.db.knex('pagePermissions')
+        .where({ pageId: req.params.pageId, subjectType, subjectId, siteId: site.id })
+        .first()
+
+      if (existing) {
+        await WIKI.db.knex('pagePermissions')
+          .where({ id: existing.id })
+          .update({ level })
+        res.json({ id: existing.id, pageId: req.params.pageId, subjectType, subjectId, level, updated: true })
+      } else {
+        await WIKI.db.knex('pagePermissions').insert({
+          id: permId,
+          pageId: req.params.pageId,
+          siteId: site.id,
+          subjectType,
+          subjectId,
+          level,
+          createdAt: now
+        })
+        res.status(201).json({ id: permId, pageId: req.params.pageId, subjectType, subjectId, level, created: true })
+      }
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /pages/:pageId/permissions failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * DELETE /api/mcp/permissions/:id
+   * Remove a permission
+   */
+  router.delete('/permissions/:id', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const perm = await WIKI.db.knex('pagePermissions')
+        .where({ id: req.params.id, siteId: site.id })
+        .first()
+      if (!perm) return res.status(404).json({ error: 'Permission not found' })
+
+      await WIKI.db.knex('pagePermissions')
+        .where({ id: req.params.id })
+        .del()
+
+      res.json({ deleted: true, id: req.params.id })
+    } catch (err) {
+      WIKI.logger.warn(`MCP DELETE /permissions/:id failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // =========================================================================
+  // AI FEATURES
+  // =========================================================================
+
+  /**
+   * POST /api/mcp/ask
+   * Ask a question about wiki content — semantic search + context extraction
+   * Body: { question, limit?, locale?, path? }
+   */
+  router.post('/ask', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const { question, locale, path: pathPrefix } = req.body || {}
+      const limit = Math.min(10, Math.max(1, parseInt(req.body?.limit) || 5))
+
+      if (!question) {
+        return res.status(400).json({ error: 'Field "question" is required.' })
+      }
+
+      // Try semantic search with embeddings
+      const queryEmbedding = await generateEmbedding(question)
+
+      let query = WIKI.db.knex('pages')
+        .where({ siteId: site.id, publishState: 'published' })
+        .select('id', 'path', 'title', 'description', 'render', 'content', 'searchContent', 'updatedAt')
+
+      if (locale) query = query.where('locale', locale)
+      if (pathPrefix) query = query.where('path', 'ILIKE', `${pathPrefix}%`)
+
+      const pages = await query.limit(200)
+
+      let scored
+      if (queryEmbedding) {
+        // Semantic ranking: generate embeddings for each page and rank by similarity
+        const results = []
+        for (const page of pages) {
+          const text = [page.title, page.description, (page.searchContent || '').slice(0, 500)].join(' ')
+          const pageEmbedding = await generateEmbedding(text)
+          const score = pageEmbedding ? cosineSimilarity(queryEmbedding, pageEmbedding) : 0
+          results.push({ ...page, score })
+        }
+        scored = results.sort((a, b) => b.score - a.score).slice(0, limit)
+      } else {
+        // Fallback: keyword search
+        const q = question.toLowerCase()
+        scored = pages
+          .map(page => {
+            const text = [page.title, page.description, page.searchContent || ''].join(' ').toLowerCase()
+            const words = q.split(/\s+/).filter(Boolean)
+            const matches = words.filter(w => text.includes(w)).length
+            return { ...page, score: matches / (words.length || 1) }
+          })
+          .filter(p => p.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, limit)
+      }
+
+      const results = scored.map(page => ({
+        id: page.id,
+        path: page.path,
+        title: page.title,
+        description: page.description,
+        score: Math.round(page.score * 1000) / 1000,
+        excerpt: stripHtml(page.render || page.content || '').slice(0, 300),
+        updatedAt: page.updatedAt
+      }))
+
+      res.json({
+        question,
+        results,
+        total: results.length,
+        method: queryEmbedding ? 'semantic' : 'keyword'
+      })
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /ask failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * POST /api/mcp/translate
+   * Translate a page's content to another locale
+   * Body: { pageId, targetLocale, targetPath? }
+   *
+   * Creates a new page with translated content.
+   * Translation is done via simple copy for now — in production,
+   * integrate with a translation API (Google Translate, DeepL, etc.)
+   */
+  router.post('/translate', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const { pageId, targetLocale, targetPath } = req.body || {}
+      if (!pageId || !targetLocale) {
+        return res.status(400).json({ error: 'Fields "pageId" and "targetLocale" are required.' })
+      }
+
+      const sourcePage = await WIKI.db.knex('pages')
+        .where({ id: pageId, siteId: site.id })
+        .select('id', 'path', 'title', 'description', 'content', 'render', 'searchContent', 'editor', 'icon', 'tags')
+        .first()
+      if (!sourcePage) return res.status(404).json({ error: 'Source page not found' })
+
+      const newPath = targetPath || `${targetLocale}/${sourcePage.path}`
+
+      // Check if translated page already exists
+      const existing = await WIKI.db.knex('pages')
+        .where({ path: newPath, siteId: site.id })
+        .first()
+      if (existing) {
+        return res.status(409).json({ error: `Page already exists at path "${newPath}". Use targetPath to specify a different path.` })
+      }
+
+      const now = new Date().toISOString()
+      const translatedId = uuidv4()
+
+      // Copy content — actual translation would be done here with an external API
+      const translatedPage = {
+        id: translatedId,
+        path: newPath,
+        title: sourcePage.title,
+        description: sourcePage.description,
+        content: sourcePage.content,
+        render: sourcePage.render,
+        searchContent: sourcePage.searchContent,
+        locale: targetLocale,
+        icon: sourcePage.icon || '',
+        tags: [...(sourcePage.tags || []), `translated-from:${sourcePage.path}`],
+        editor: sourcePage.editor,
+        publishState: 'draft',
+        siteId: site.id,
+        createdAt: now,
+        updatedAt: now
+      }
+
+      await WIKI.db.knex('pages').insert(translatedPage)
+
+      res.status(201).json({
+        id: translatedId,
+        path: newPath,
+        title: sourcePage.title,
+        locale: targetLocale,
+        sourcePageId: pageId,
+        sourcePath: sourcePage.path,
+        publishState: 'draft',
+        note: 'Page created as draft with source content. Translate the content manually or via an external API, then publish.',
+        createdAt: now
+      })
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /translate failed: ${err.message}`)
       res.status(500).json({ error: 'Internal server error' })
     }
   })
