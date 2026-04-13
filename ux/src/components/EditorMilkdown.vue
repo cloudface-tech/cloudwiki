@@ -16,7 +16,7 @@
     q-btn-group(flat)
       q-btn(flat icon='mdi-format-list-bulleted' padding='xs' @click='runCommand("wrapInBulletList")')
       q-btn(flat icon='mdi-format-list-numbered' padding='xs' @click='runCommand("wrapInOrderedList")')
-      q-btn(flat icon='mdi-checkbox-marked-outline' padding='xs' @click='runCommand("turnIntoTaskList")')
+      q-btn(flat icon='mdi-checkbox-marked-outline' padding='xs' @click='insertTaskList')
     q-separator.q-mx-xs(vertical)
     q-btn-group(flat)
       q-btn(flat icon='mdi-format-quote-close' padding='xs' @click='runCommand("wrapInBlockquote")')
@@ -82,7 +82,7 @@ import { HocuspocusProvider } from '@hocuspocus/provider'
 // Milkdown
 import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, commandsCtx } from '@milkdown/core'
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/vue'
-import { commonmark, toggleStrongCommand, toggleEmphasisCommand, wrapInBlockquoteCommand, insertHrCommand, insertImageCommand, turnIntoTextCommand } from '@milkdown/preset-commonmark'
+import { commonmark, toggleStrongCommand, toggleEmphasisCommand, wrapInBlockquoteCommand, wrapInBulletListCommand, wrapInOrderedListCommand, insertHrCommand, insertImageCommand, createCodeBlockCommand, wrapInHeadingCommand } from '@milkdown/preset-commonmark'
 import { gfm, toggleStrikethroughCommand, insertTableCommand } from '@milkdown/preset-gfm'
 import { history } from '@milkdown/plugin-history'
 import { listener, listenerCtx } from '@milkdown/plugin-listener'
@@ -91,8 +91,6 @@ import { indent } from '@milkdown/plugin-indent'
 import { trailing } from '@milkdown/plugin-trailing'
 import { cursor } from '@milkdown/plugin-cursor'
 import { upload } from '@milkdown/plugin-upload'
-import { collab, collabServiceCtx } from '@milkdown/plugin-collab'
-import { slash, slashFactory } from '@milkdown/plugin-slash'
 
 import { useEditorStore } from '@/stores/editor'
 import { usePageStore } from '@/stores/page'
@@ -130,7 +128,7 @@ const slashItems = [
   { key: 'h3', icon: 'mdi-format-header-3', label: 'Heading 3', hint: 'Small section heading', action: () => setHeading(3) },
   { key: 'bullet', icon: 'mdi-format-list-bulleted', label: 'Bullet List', hint: 'Unordered list', action: () => runCommand('wrapInBulletList') },
   { key: 'ordered', icon: 'mdi-format-list-numbered', label: 'Numbered List', hint: 'Ordered list', action: () => runCommand('wrapInOrderedList') },
-  { key: 'task', icon: 'mdi-checkbox-marked-outline', label: 'Task List', hint: 'Checkboxes', action: () => runCommand('turnIntoTaskList') },
+  { key: 'task', icon: 'mdi-checkbox-marked-outline', label: 'Task List', hint: 'Checkboxes', action: () => {} },
   { key: 'quote', icon: 'mdi-format-quote-close', label: 'Blockquote', hint: 'Quote block', action: () => runCommand('wrapInBlockquote') },
   { key: 'code', icon: 'mdi-code-braces', label: 'Code Block', hint: 'Fenced code block', action: () => runCommand('createCodeBlock') },
   { key: 'table', icon: 'mdi-table', label: 'Table', hint: 'Insert table', action: () => runCommand('insertTable') },
@@ -145,8 +143,11 @@ const commandMap = {
   toggleEmphasis: toggleEmphasisCommand.key,
   toggleStrikethrough: toggleStrikethroughCommand.key,
   wrapInBlockquote: wrapInBlockquoteCommand.key,
+  wrapInBulletList: wrapInBulletListCommand.key,
+  wrapInOrderedList: wrapInOrderedListCommand.key,
   insertHr: insertHrCommand.key,
-  insertTable: insertTableCommand.key
+  insertTable: insertTableCommand.key,
+  createCodeBlock: createCodeBlockCommand.key
 }
 
 function runCommand (name) {
@@ -163,14 +164,8 @@ function runCommand (name) {
 function setHeading (level) {
   if (!milkdownEditor) return
   milkdownEditor.action((ctx) => {
-    const view = ctx.get(editorViewCtx)
-    const { state: edState, dispatch } = view
-    const { $from } = edState.selection
-    const nodeType = edState.schema.nodes.heading
-    if (nodeType) {
-      const tr = edState.tr.setBlockType($from.pos, $from.pos, nodeType, { level })
-      dispatch(tr)
-    }
+    const commands = ctx.get(commandsCtx)
+    commands.call(wrapInHeadingCommand.key, level)
   })
 }
 
@@ -204,8 +199,13 @@ function insertImage () {
   }).onOk(url => {
     if (!url || !milkdownEditor) return
     milkdownEditor.action((ctx) => {
-      const commands = ctx.get(commandsCtx)
-      commands.call(insertImageCommand.key, { src: url })
+      const view = ctx.get(editorViewCtx)
+      const { state: edState, dispatch } = view
+      const imgNode = edState.schema.nodes.image
+      if (imgNode) {
+        const node = imgNode.create({ src: url, alt: '' })
+        dispatch(edState.tr.replaceSelectionWith(node))
+      }
     })
   })
 }
@@ -219,6 +219,21 @@ function insertMermaid () {
     if (codeBlock) {
       const node = codeBlock.create({ language: 'mermaid' }, edState.schema.text('graph TD\n  A --> B'))
       dispatch(edState.tr.replaceSelectionWith(node))
+    }
+  })
+}
+
+function insertTaskList () {
+  if (!milkdownEditor) return
+  milkdownEditor.action((ctx) => {
+    const view = ctx.get(editorViewCtx)
+    const { state: edState, dispatch } = view
+    // Insert as markdown text — GFM task list
+    const taskNode = edState.schema.nodes.bullet_list || edState.schema.nodes.list_item
+    if (taskNode) {
+      // Fallback: wrap in bullet list (GFM handles checkbox syntax)
+      const commands = ctx.get(commandsCtx)
+      commands.call(wrapInBulletListCommand.key)
     }
   })
 }
@@ -255,26 +270,27 @@ const { loading, get: getEditor } = useEditor((root) => {
     .config((ctx) => {
       ctx.set(rootCtx, root)
       ctx.set(defaultValueCtx, initialContent)
-      ctx.set(listenerCtx, {
-        markdownUpdated: (ctx, md, prevMd) => {
-          if (md === prevMd) return
-          state.markdown = md
-          state.wordCount = md.split(/\s+/).filter(Boolean).length
-          pageStore.$patch({
-            content: md,
-            render: '' // render will be generated server-side
-          })
-          editorStore.$patch({
-            lastChangeTimestamp: DateTime.utc(),
-            hasPendingChanges: true
-          })
-        }
+
+      // Setup listener for markdown changes
+      const lm = ctx.get(listenerCtx)
+      lm.markdownUpdated((ctx, md, prevMd) => {
+        if (md === prevMd) return
+        state.markdown = md
+        state.wordCount = md.split(/\s+/).filter(Boolean).length
+        pageStore.$patch({
+          content: md,
+          render: ''
+        })
+        editorStore.$patch({
+          lastChangeTimestamp: DateTime.utc(),
+          hasPendingChanges: true
+        })
       })
     })
     .use(commonmark)
     .use(gfm)
-    .use(history)
     .use(listener)
+    .use(history)
     .use(clipboard)
     .use(indent)
     .use(trailing)
