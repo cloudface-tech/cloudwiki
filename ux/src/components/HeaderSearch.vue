@@ -19,21 +19,36 @@ q-toolbar(
     )
     template(v-slot:prepend)
       q-circular-progress.q-mr-xs(
-        v-if='siteStore.searchIsLoading && route.path !== `/_search`'
+        v-if='(siteStore.searchIsLoading || state.askLoading) && route.path !== `/_search`'
         instant-feedback
         indeterminate
         rounded
         color='primary'
         size='20px'
         )
-      q-icon(v-else, name='las la-search')
+      q-icon(v-else-if='state.askMode' name='las la-robot' color='amber' @click='toggleAskMode')
+      q-icon(v-else name='las la-search' @click='toggleAskMode')
     template(v-slot:append)
+      q-toggle.q-mr-xs(
+        v-model='state.askMode'
+        icon='las la-robot'
+        color='amber'
+        size='xs'
+        dense
+        )
+        q-tooltip Ask AI
       q-badge.search-kbdbadge.q-mr-sm(
         v-if='!state.searchIsFocused'
         label='Ctrl+K'
         color='custom-color'
         outline
         @click='searchField.focus()'
+        )
+      q-badge.q-mr-sm(
+        v-else-if='state.askMode && siteStore.search'
+        label='Enter = Ask AI'
+        color='amber-8'
+        outline
         )
       q-badge.q-mr-sm(
         v-else-if='siteStore.search && siteStore.search !== siteStore.searchLastQuery'
@@ -45,13 +60,49 @@ q-toolbar(
       q-icon.cursor-pointer(
         name='las la-times'
         size='20px'
-        @click='siteStore.search=``'
+        @click='clearSearch'
         v-if='siteStore.search.length > 0'
         color='grey-6'
         )
+  //- AI Ask Results
+  .searchpanel.searchpanel--ai(
+    ref='searchPanel'
+    v-if='state.askResults.length > 0'
+    )
+    .searchpanel-header
+      q-icon.q-mr-xs(name='las la-robot' color='amber')
+      span AI Results ({{ state.askResults.length }})
+      q-badge.q-ml-sm(:label='state.askMethod' color='grey-7' outline)
+      q-space
+      q-btn.acrylic-btn(flat label='Clear' rounded size='xs' @click='state.askResults = []')
+    q-list(dense dark)
+      q-item(
+        v-for='r in state.askResults'
+        :key='r.id'
+        clickable
+        @click='goToPage(r.path)'
+        )
+        q-item-section(avatar)
+          q-circular-progress(
+            :value='r.score * 100'
+            size='32px'
+            :thickness='0.2'
+            color='amber'
+            track-color='grey-8'
+            font-size='9px'
+            show-value
+            )
+            | {{ Math.round(r.score * 100) }}
+        q-item-section
+          q-item-label.text-white {{ r.title }}
+          q-item-label.text-grey-5(caption lines='2') {{ r.excerpt }}
+        q-item-section(side)
+          q-item-label.text-grey-6(caption) /{{ r.path }}
+
+  //- Regular search panel
   .searchpanel(
     ref='searchPanel'
-    v-if='searchPanelIsShown'
+    v-if='searchPanelIsShown && !state.askMode'
     )
     template(v-if='siteStore.tagsLoaded && siteStore.tags.length > 0')
       .searchpanel-header
@@ -111,7 +162,11 @@ const { t } = useI18n()
 // DATA
 
 const state = reactive({
-  searchIsFocused: false
+  searchIsFocused: false,
+  askMode: false,
+  askLoading: false,
+  askResults: [],
+  askMethod: ''
 })
 
 const searchPanel = ref(null)
@@ -148,12 +203,52 @@ function handleKeyPress (ev) {
 
 function onSearchEnter () {
   if (!siteStore.search) { return }
+  if (state.askMode) {
+    askWiki()
+    return
+  }
   if (route.path === '/_search') {
     router.replace({ path: '/_search', query: { q: siteStore.search } })
   } else {
     siteStore.searchIsLoading = true
     router.push({ path: '/_search', query: { q: siteStore.search } })
   }
+}
+
+async function askWiki () {
+  if (!siteStore.search) return
+  state.askLoading = true
+  state.askResults = []
+  try {
+    const resp = await fetch('/api/mcp/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: siteStore.search, limit: 8 })
+    })
+    if (resp.ok) {
+      const data = await resp.json()
+      state.askResults = data.results || []
+      state.askMethod = data.method || 'keyword'
+    }
+  } finally {
+    state.askLoading = false
+  }
+}
+
+function toggleAskMode () {
+  state.askMode = !state.askMode
+  state.askResults = []
+}
+
+function clearSearch () {
+  siteStore.search = ''
+  state.askResults = []
+}
+
+function goToPage (path) {
+  state.askResults = []
+  state.searchIsFocused = false
+  router.push(`/${path}`)
 }
 
 function checkSearchFocus (ev) {
@@ -225,5 +320,16 @@ onBeforeUnmount(() => {
 
 .search-kbdbadge {
   color: rgba(255,255,255,.5);
+}
+
+.searchpanel--ai {
+  max-height: 400px;
+  overflow-y: auto;
+
+  .q-item {
+    border-radius: 8px;
+    margin: 2px 0;
+    &:hover { background: rgba(255,255,255,.1); }
+  }
 }
 </style>

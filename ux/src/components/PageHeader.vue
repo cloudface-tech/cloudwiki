@@ -15,6 +15,27 @@
         style='border-radius: 8px; padding: 4px 14px;'
         @click='openPrintView'
       )
+      q-btn(
+        flat
+        no-caps
+        icon='las la-language'
+        label='Translate'
+        color='grey-7'
+        size='sm'
+        style='border-radius: 8px; padding: 4px 14px;'
+        @click='openTranslateDialog'
+      )
+      q-btn(
+        v-if='userStore.authenticated && userStore.can(`manage:pages`)'
+        flat
+        no-caps
+        icon='las la-lock'
+        label='Permissions'
+        color='grey-7'
+        size='sm'
+        style='border-radius: 8px; padding: 4px 14px;'
+        @click='openPermissionsDialog'
+      )
       q-btn.page-header-edit(
         v-if='userStore.authenticated && userStore.can(`write:pages`)'
         flat
@@ -154,6 +175,26 @@ function openPrintView () {
   if (pageId) {
     window.open(`/_print/${pageId}`, '_blank')
   }
+}
+
+function openTranslateDialog () {
+  $q.dialog({
+    component: defineAsyncComponent(() => import('./PageTranslateDialog.vue')),
+    componentProps: {
+      pageId: pageStore.id,
+      currentPath: pageStore.path,
+      currentLocale: pageStore.locale
+    }
+  })
+}
+
+function openPermissionsDialog () {
+  $q.dialog({
+    component: defineAsyncComponent(() => import('./PagePermissionsDialog.vue')),
+    componentProps: {
+      pageId: pageStore.id
+    }
+  })
 }
 </script>
 

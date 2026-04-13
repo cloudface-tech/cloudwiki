@@ -20,6 +20,7 @@ q-page.column
               color='primary'
               size='sm'
               )
+        page-comments-panel(v-if='pageStore.id && !editorStore.isActive')
     //- Edit actions (only in editor mode)
     page-actions-col(v-if='editorStore.isActive')
   side-dialog
@@ -41,6 +42,7 @@ import { useUserStore } from '@/stores/user'
 
 import LoadingGeneric from '@/components/LoadingGeneric.vue'
 import PageActionsCol from '@/components/PageActionsCol.vue'
+import PageCommentsPanel from '@/components/PageCommentsPanel.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import SideDialog from '@/components/SideDialog.vue'
 
