@@ -745,7 +745,7 @@ export default function () {
         .where({ siteId: site.id })
         .where(function () {
           this.where('path', 'ILIKE', 'templates/%')
-            .orWhereRaw("tags @> ARRAY['template']::varchar[]")
+            .orWhereRaw("tags @> ARRAY['template']::text[]")
         })
         .select('id', 'path', 'title', 'description', 'locale', 'icon', 'tags', 'editor', 'updatedAt')
         .orderBy('title')
