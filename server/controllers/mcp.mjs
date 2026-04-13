@@ -711,6 +711,12 @@ export default function () {
         .first()
       if (!page) return res.status(404).json({ error: 'Page not found' })
 
+      // Delete dependent records first (FK constraints)
+      await WIKI.db.knex('comments').where({ pageId: req.params.id }).del()
+      await WIKI.db.knex('pagePermissions').where({ pageId: req.params.id }).del()
+      await WIKI.db.knex('pageLinks').where({ pageId: req.params.id }).orWhere({ targetId: req.params.id }).del().catch(() => {})
+      await WIKI.db.knex('pageHistory').where({ pageId: req.params.id }).del().catch(() => {})
+
       await WIKI.db.knex('pages')
         .where({ id: req.params.id })
         .del()
