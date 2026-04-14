@@ -101,6 +101,7 @@
 import { onMounted, reactive, watch } from 'vue'
 import { usePageStore } from '@/stores/page'
 import { useUserStore } from '@/stores/user'
+import { sanitizeHtml } from '@/helpers/sanitize'
 import { DateTime } from 'luxon'
 
 const pageStore = usePageStore()
@@ -121,7 +122,8 @@ function formatDate (iso) {
 }
 
 function renderContent (text) {
-  return (text || '').replace(/@(\w+)/g, '<strong class="text-primary">@$1</strong>')
+  const escaped = sanitizeHtml(text || '')
+  return escaped.replace(/@(\w+)/g, '<strong class="text-primary">@$1</strong>')
 }
 
 function extractMentions (text) {

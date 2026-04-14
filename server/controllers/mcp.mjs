@@ -55,9 +55,9 @@ function authenticateApiKey (req, res, next) {
     return next()
   }
 
-  const providedKey = req.headers['x-api-key'] || req.query.apiKey
+  const providedKey = req.headers['x-api-key']
   if (!providedKey) {
-    return res.status(401).json({ error: 'API key required. Provide via X-API-Key header or ?apiKey= query parameter.' })
+    return res.status(401).json({ error: 'API key required. Provide via X-API-Key header.' })
   }
   if (providedKey !== configuredKey) {
     return res.status(403).json({ error: 'Invalid API key.' })
@@ -395,7 +395,6 @@ export default function () {
       authentication: {
         type: 'api-key',
         header: 'X-API-Key',
-        queryParam: 'apiKey',
         note: 'If no API key is configured on the server, all endpoints are public.'
       }
     })

@@ -72,9 +72,9 @@
     icon='las la-history'
     :color='editorStore.isActive ? `white` : `grey`'
     aria-label='Page History'
-    @click='notImplemented'
+    disabled
     )
-    q-tooltip(anchor='center left' self='center right') Page History
+    q-tooltip(anchor='center left' self='center right') Em breve
   q-btn.q-py-md(
     flat
     icon='las la-code'

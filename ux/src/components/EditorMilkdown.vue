@@ -35,7 +35,7 @@
     editor-milkdown-inner(
       :initial-content='initialContent'
       @update='onEditorUpdate'
-      @editor-ready='onEditorReady'
+      @ready='onEditorReady'
     )
 
   //- Source mode (raw markdown)
@@ -77,11 +77,9 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { onMounted, onBeforeUnmount, reactive, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { DateTime } from 'luxon'
-import * as Y from 'yjs'
-import { HocuspocusProvider } from '@hocuspocus/provider'
 
 import { MilkdownProvider } from '@milkdown/vue'
 import { commandsCtx, editorViewCtx, serializerCtx } from '@milkdown/core'
@@ -101,10 +99,6 @@ const siteStore = useSiteStore()
 const userStore = useUserStore()
 
 let milkdownEditor = null
-let ydoc = null
-let collabProvider = null
-
-const slashMenuRef = ref(null)
 
 const state = reactive({
   sourceMode: false,
@@ -299,51 +293,14 @@ watch(() => editorStore.hasPendingChanges, (val) => {
   if (val) scheduleAutosave()
 })
 
-// Setup collab after mount
-onMounted(async () => {
+onMounted(() => {
   editorStore.$patch({ hideSideNav: false })
-
-  // Wait for editor
-  await nextTick()
-  await nextTick()
-
-  // Init Yjs collab
-  try {
-    ydoc = new Y.Doc()
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const collabUrl = `${wsProtocol}://${window.location.host}/_collab`
-
-    collabProvider = new HocuspocusProvider({
-      url: collabUrl,
-      name: pageStore.id || 'default',
-      document: ydoc,
-      token: document.cookie.match(/jwt=([^;]+)/)?.[1] || 'anonymous',
-      onConnect () {
-        state.collabEnabled = true
-      },
-      onDisconnect () {
-        state.collabEnabled = false
-      }
-    })
-  } catch (err) {
-    console.warn('[Milkdown Collab] Init failed:', err.message)
-  }
-
-  // Initial word count
   const md = pageStore.content || ''
   state.wordCount = md.split(/\s+/).filter(Boolean).length
 })
 
 onBeforeUnmount(() => {
   if (autosaveTimer) clearTimeout(autosaveTimer)
-  if (collabProvider) {
-    collabProvider.destroy()
-    collabProvider = null
-  }
-  if (ydoc) {
-    ydoc.destroy()
-    ydoc = null
-  }
 })
 </script>
 

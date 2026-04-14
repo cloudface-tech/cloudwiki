@@ -115,6 +115,26 @@ jobs:
         working-directory: ux
         run: pnpm test
 
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Audit server dependencies
+        working-directory: server
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+      - name: Audit frontend dependencies
+        working-directory: ux
+        run: pnpm audit --audit-level=high
+        continue-on-error: true
+
   a11y-audit:
     name: Accessibility Audit
     runs-on: ubuntu-latest

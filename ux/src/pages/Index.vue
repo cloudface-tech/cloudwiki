@@ -6,7 +6,7 @@ q-page.column
       q-no-ssr(v-if='editorStore.isActive')
         component(:is='editorComponents[editorStore.editor]')
       .page-content-wrap(v-else)
-        .page-contents(ref='pageContents', v-html='pageStore.render')
+        .page-contents(ref='pageContents', v-html='sanitizedRender')
         template(v-if='pageStore.relations && pageStore.relations.length > 0')
           .page-relations
             q-btn.q-mr-sm.q-mb-sm(
@@ -44,6 +44,7 @@ import { useUserStore } from '@/stores/user'
 
 import LoadingGeneric from '@/components/LoadingGeneric.vue'
 import PageActionsCol from '@/components/PageActionsCol.vue'
+import { sanitizeHtml } from '@/helpers/sanitize'
 import PageCommentsPanel from '@/components/PageCommentsPanel.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import PageToc from '@/components/PageToc.vue'
@@ -71,6 +72,8 @@ const route = useRoute()
 const { t } = useI18n()
 
 useMeta({ title: pageStore.title })
+
+const sanitizedRender = computed(() => sanitizeHtml(pageStore.render))
 
 const pageContents = ref(null)
 
