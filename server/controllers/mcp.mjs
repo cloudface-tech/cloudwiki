@@ -1608,12 +1608,12 @@ export default function () {
    * Public read-only access to published pages (no auth required)
    * Renders clean HTML or returns JSON with content
    */
-  router.get('/docs/*', async (req, res) => {
+  router.get('/docs/:path+', async (req, res) => {
     try {
       const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
       if (!site) return res.status(404).json({ error: 'Site not found' })
 
-      const pagePath = req.params[0] || 'home'
+      const pagePath = req.params.path || 'home'
       const page = await WIKI.db.knex('pages')
         .where({ path: pagePath, siteId: site.id, publishState: 'published' })
         .select('id', 'path', 'title', 'description', 'content', 'render', 'locale', 'icon', 'tags', 'updatedAt')
