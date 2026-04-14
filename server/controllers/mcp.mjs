@@ -139,6 +139,170 @@ export default function () {
   router.use(authenticateApiKey)
 
   /**
+   * GET /api/mcp/recent
+   * List recently updated pages
+   */
+  router.get('/recent', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const limit = Math.min(20, Math.max(1, parseInt(req.query.limit) || 10))
+
+      const pages = await WIKI.db.knex('pages')
+        .where({ siteId: site.id, publishState: 'published' })
+        .select('id', 'path', 'title', 'description', 'locale', 'icon', 'updatedAt')
+        .orderBy('updatedAt', 'desc')
+        .limit(limit)
+
+      res.json({ pages, total: pages.length })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /recent failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * POST /api/mcp/seed-templates
+   * Create starter templates (idempotent)
+   */
+  router.post('/seed-templates', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const templates = [
+        {
+          path: 'templates/ata-de-reuniao',
+          title: 'Ata de Reuniao',
+          description: 'Template para atas de reuniao',
+          content: '# Ata de Reuniao\n\n**Data:** \n**Participantes:** \n\n## Pauta\n\n1. \n\n## Decisoes\n\n- \n\n## Proximos Passos\n\n| Acao | Responsavel | Prazo |\n|------|-------------|-------|\n| | | |\n'
+        },
+        {
+          path: 'templates/adr',
+          title: 'ADR - Decisao Tecnica',
+          description: 'Architecture Decision Record',
+          content: '# ADR-000: Titulo da Decisao\n\n**Status:** Proposta | Aceita | Depreciada\n**Data:** \n**Autor:** \n\n## Contexto\n\nDescreva o contexto e problema.\n\n## Decisao\n\nDescreva a decisao tomada.\n\n## Consequencias\n\n### Positivas\n- \n\n### Negativas\n- \n\n## Alternativas Consideradas\n\n1. **Alternativa A** — descricao\n2. **Alternativa B** — descricao\n'
+        },
+        {
+          path: 'templates/runbook',
+          title: 'Runbook Operacional',
+          description: 'Guia passo-a-passo para operacoes',
+          content: '# Runbook: Nome do Procedimento\n\n**Severidade:** Alta | Media | Baixa\n**Tempo estimado:** X min\n**Ultimo teste:** \n\n## Pre-requisitos\n\n- [ ] Acesso ao sistema X\n- [ ] Credenciais configuradas\n\n## Passos\n\n### 1. Verificacao inicial\n\n```bash\n# comando aqui\n```\n\n### 2. Execucao\n\n```bash\n# comando aqui\n```\n\n### 3. Validacao\n\n- [ ] Verificar logs\n- [ ] Testar endpoint\n\n## Rollback\n\nCaso algo de errado:\n\n```bash\n# comando de rollback\n```\n\n## Contatos\n\n| Papel | Nome | Contato |\n|-------|------|--------|\n| Oncall | | |\n'
+        },
+        {
+          path: 'templates/onboarding',
+          title: 'Onboarding de Novo Membro',
+          description: 'Checklist para onboarding',
+          content: '# Onboarding: Nome do Membro\n\n**Data de inicio:** \n**Time:** \n**Buddy:** \n\n## Dia 1\n\n- [ ] Boas-vindas e apresentacao do time\n- [ ] Configurar acessos (email, Slack, Git)\n- [ ] Ler documentacao base\n- [ ] Setup do ambiente de desenvolvimento\n\n## Semana 1\n\n- [ ] Conhecer a arquitetura do projeto\n- [ ] Primeiro PR (tarefa simples)\n- [ ] 1:1 com lider tecnico\n\n## Mes 1\n\n- [ ] Completar tarefa significativa\n- [ ] Participar de code review\n- [ ] Feedback 30 dias\n\n## Links Uteis\n\n- [Arquitetura]()\n- [Guia de Contribuicao]()\n- [Padroes de Codigo]()\n'
+        },
+        {
+          path: 'templates/projeto',
+          title: 'Documentacao de Projeto',
+          description: 'Template para documentar projetos',
+          content: '# Projeto: Nome\n\n**Status:** Em desenvolvimento | Producao | Depreciado\n**Time:** \n**Repositorio:** \n\n## Visao Geral\n\nDescreva o objetivo do projeto.\n\n## Arquitetura\n\n```mermaid\ngraph TD\n  A[Frontend] --> B[API]\n  B --> C[Database]\n```\n\n## Stack Tecnica\n\n| Componente | Tecnologia |\n|-----------|------------|\n| Frontend | |\n| Backend | |\n| Database | |\n| Infra | |\n\n## Como Rodar\n\n```bash\n# instrucoes aqui\n```\n\n## Endpoints\n\n| Metodo | Path | Descricao |\n|--------|------|----------|\n| GET | /api/v1/ | |\n\n## Decisoes Tecnicas\n\n- [[ADR-001]]\n'
+        }
+      ]
+
+      const created = []
+      for (const tpl of templates) {
+        const existing = await WIKI.db.knex('pages')
+          .where({ path: tpl.path, siteId: site.id })
+          .first()
+        if (existing) {
+          created.push({ path: tpl.path, status: 'exists' })
+          continue
+        }
+
+        const now = new Date().toISOString()
+        const pageId = uuidv4()
+        await WIKI.db.knex('pages').insert({
+          id: pageId,
+          path: tpl.path,
+          hash: generatePageHash(tpl.path, 'pt'),
+          title: tpl.title,
+          description: tpl.description,
+          content: tpl.content,
+          render: markdownToHtml(tpl.content),
+          searchContent: tpl.content,
+          locale: 'pt',
+          icon: 'las la-file-alt',
+          tags: ['template'],
+          editor: 'markdown',
+          contentType: 'markdown',
+          publishState: 'published',
+          config: {},
+          relations: [],
+          scripts: {},
+          historyData: {},
+          isBrowsable: true,
+          isSearchable: true,
+          ratingScore: 0,
+          ratingCount: 0,
+          authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+          creatorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+          ownerId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+          siteId: site.id,
+          createdAt: now,
+          updatedAt: now
+        })
+        created.push({ path: tpl.path, status: 'created', id: pageId })
+      }
+
+      res.json({ templates: created, total: created.length })
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /seed-templates failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * POST /api/mcp/migrate
+   * Run data integrity fixes (idempotent)
+   */
+  router.post('/migrate', express.json(), async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const results = []
+
+      // Fix locale: pages with PT content but locale='en'
+      const localeFixed = await WIKI.db.knex('pages')
+        .where({ siteId: site.id, locale: 'en' })
+        .whereRaw("(path ILIKE 'nees/%' OR path ILIKE 'minc/%' OR path ILIKE 'cultbr/%' OR title ~* '[\\xC0-\\xFF]')")
+        .update({ locale: 'pt' })
+      results.push({ action: 'fix-locale-en-to-pt', updated: localeFixed })
+
+      // Fix double-slash paths
+      const doubleSlash = await WIKI.db.knex('pages')
+        .where({ siteId: site.id })
+        .whereRaw("path LIKE '%//%'")
+        .select('id', 'path')
+      for (const page of doubleSlash) {
+        const fixedPath = page.path.replace(/\/\//g, '/')
+        await WIKI.db.knex('pages').where({ id: page.id }).update({
+          path: fixedPath,
+          hash: generatePageHash(fixedPath, 'pt')
+        })
+      }
+      results.push({ action: 'fix-double-slash-paths', fixed: doubleSlash.length })
+
+      // Unpublish test pages
+      const testUnpub = await WIKI.db.knex('pages')
+        .where({ siteId: site.id })
+        .where('path', 'ILIKE', 'teste/%')
+        .update({ publishState: 'draft' })
+      results.push({ action: 'unpublish-test-pages', updated: testUnpub })
+
+      res.json({ migrated: true, results })
+    } catch (err) {
+      WIKI.logger.warn(`MCP POST /migrate failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
    * GET /api/mcp/manifest
    * MCP-compatible manifest describing available capabilities
    */
@@ -517,14 +681,31 @@ export default function () {
       const total = parseInt(countResult?.total || 0)
 
       const pages = await query
-        .select('id', 'path', 'title', 'description', 'locale', 'icon', 'tags', 'updatedAt')
+        .select('id', 'path', 'title', 'description', 'locale', 'icon', 'tags', 'updatedAt', 'searchContent')
         .orderBy('updatedAt', 'desc')
         .offset(offset)
         .limit(limit)
 
+      // Generate excerpts with keyword context
+      const qLower = q.toLowerCase()
+      const pagesWithExcerpt = pages.map(p => {
+        const text = p.searchContent || p.description || ''
+        let excerpt = ''
+        const idx = text.toLowerCase().indexOf(qLower)
+        if (idx >= 0) {
+          const start = Math.max(0, idx - 80)
+          const end = Math.min(text.length, idx + q.length + 120)
+          excerpt = (start > 0 ? '...' : '') + text.slice(start, end).trim() + (end < text.length ? '...' : '')
+        } else {
+          excerpt = text.slice(0, 200).trim() + (text.length > 200 ? '...' : '')
+        }
+        const { searchContent, ...rest } = p
+        return { ...rest, excerpt }
+      })
+
       res.json({
         query: q,
-        pages,
+        pages: pagesWithExcerpt,
         pagination: {
           page,
           limit,

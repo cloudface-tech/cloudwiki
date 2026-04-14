@@ -301,6 +301,27 @@ const { loading, get: getEditor } = useEditor((root) => {
   return ed
 })
 
+// Autosave with debounce (30s)
+let autosaveTimer = null
+
+function scheduleAutosave () {
+  if (autosaveTimer) clearTimeout(autosaveTimer)
+  autosaveTimer = setTimeout(async () => {
+    if (!editorStore.hasPendingChanges) return
+    try {
+      await pageStore.pageSave()
+      state.lastSaved = DateTime.utc().toRelative()
+      editorStore.$patch({ hasPendingChanges: false })
+    } catch (err) {
+      console.warn('[Autosave] Failed:', err.message)
+    }
+  }, 30000)
+}
+
+watch(() => editorStore.hasPendingChanges, (val) => {
+  if (val) scheduleAutosave()
+})
+
 // Setup collab after mount
 onMounted(async () => {
   editorStore.$patch({ hideSideNav: false })
@@ -337,6 +358,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  if (autosaveTimer) clearTimeout(autosaveTimer)
   if (collabProvider) {
     collabProvider.destroy()
     collabProvider = null

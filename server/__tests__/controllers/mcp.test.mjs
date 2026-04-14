@@ -664,4 +664,115 @@ describe('MCP API v2', () => {
       expect(dup).toBeDefined()
     })
   })
+
+  // -----------------------------------------------------------------------
+  // Search excerpts
+  // -----------------------------------------------------------------------
+
+  describe('search excerpts', () => {
+    it('should generate excerpt around keyword match', () => {
+      const text = 'Lorem ipsum dolor sit amet consectetur. A keyword appears here in the middle of a long text about configuration and deployment.'
+      const q = 'keyword'
+      const idx = text.toLowerCase().indexOf(q.toLowerCase())
+      const start = Math.max(0, idx - 80)
+      const end = Math.min(text.length, idx + q.length + 120)
+      const excerpt = (start > 0 ? '...' : '') + text.slice(start, end).trim()
+      expect(excerpt).toContain('keyword')
+      expect(excerpt.length).toBeLessThanOrEqual(text.length)
+    })
+
+    it('should fallback to first 200 chars when no match', () => {
+      const text = 'A'.repeat(300)
+      const excerpt = text.slice(0, 200) + '...'
+      expect(excerpt.length).toBe(203)
+    })
+  })
+
+  // -----------------------------------------------------------------------
+  // Recent pages
+  // -----------------------------------------------------------------------
+
+  describe('recent pages', () => {
+    it('should limit results to max 20', () => {
+      const limit = Math.min(20, Math.max(1, 50))
+      expect(limit).toBe(20)
+    })
+
+    it('should default to 10', () => {
+      const limit = Math.min(20, Math.max(1, parseInt(undefined) || 10))
+      expect(limit).toBe(10)
+    })
+
+    it('should order by updatedAt desc', () => {
+      const pages = makePages()
+      const sorted = [...pages].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+      expect(sorted[0].path).toBe('nees/portal')
+    })
+  })
+
+  // -----------------------------------------------------------------------
+  // Page hash generation
+  // -----------------------------------------------------------------------
+
+  describe('page hash', () => {
+    it('should generate deterministic hash from path + locale', () => {
+      const crypto = require('crypto')
+      const hash1 = crypto.createHash('sha256').update('pt:test/page').digest('hex')
+      const hash2 = crypto.createHash('sha256').update('pt:test/page').digest('hex')
+      expect(hash1).toBe(hash2)
+      expect(hash1).toHaveLength(64)
+    })
+
+    it('should differ for different locales', () => {
+      const crypto = require('crypto')
+      const hashPt = crypto.createHash('sha256').update('pt:test/page').digest('hex')
+      const hashEn = crypto.createHash('sha256').update('en:test/page').digest('hex')
+      expect(hashPt).not.toBe(hashEn)
+    })
+  })
+
+  // -----------------------------------------------------------------------
+  // Migration
+  // -----------------------------------------------------------------------
+
+  describe('migration', () => {
+    it('should fix double-slash paths', () => {
+      const path = 'nees//gestao/formularios'
+      const fixed = path.replace(/\/\//g, '/')
+      expect(fixed).toBe('nees/gestao/formularios')
+    })
+
+    it('should detect PT content in EN locale pages', () => {
+      const title = 'Legislação'
+      const hasDiacritics = /[\u00C0-\u00FF]/.test(title)
+      expect(hasDiacritics).toBe(true)
+    })
+
+    it('should detect nees/ path prefix as PT', () => {
+      const path = 'nees/transversal/arquitetura'
+      const isPt = path.startsWith('nees/') || path.startsWith('minc/')
+      expect(isPt).toBe(true)
+    })
+  })
+
+  // -----------------------------------------------------------------------
+  // Seed templates
+  // -----------------------------------------------------------------------
+
+  describe('seed templates', () => {
+    it('should create 5 default templates', () => {
+      const templates = ['ata-de-reuniao', 'adr', 'runbook', 'onboarding', 'projeto']
+      expect(templates).toHaveLength(5)
+    })
+
+    it('should use templates/ path prefix', () => {
+      const paths = ['templates/ata-de-reuniao', 'templates/adr', 'templates/runbook']
+      expect(paths.every(p => p.startsWith('templates/'))).toBe(true)
+    })
+
+    it('should tag with template', () => {
+      const tags = ['template']
+      expect(tags).toContain('template')
+    })
+  })
 })

@@ -21,6 +21,8 @@ q-page.column
               size='sm'
               )
         page-comments-panel(v-if='pageStore.id && !editorStore.isActive')
+    //- TOC sidebar (read mode only)
+    page-toc(v-if='!editorStore.isActive')
     //- Edit actions (only in editor mode)
     page-actions-col(v-if='editorStore.isActive')
   side-dialog
@@ -44,6 +46,7 @@ import LoadingGeneric from '@/components/LoadingGeneric.vue'
 import PageActionsCol from '@/components/PageActionsCol.vue'
 import PageCommentsPanel from '@/components/PageCommentsPanel.vue'
 import PageHeader from '@/components/PageHeader.vue'
+import PageToc from '@/components/PageToc.vue'
 import SideDialog from '@/components/SideDialog.vue'
 
 const milkdownEditor = defineAsyncComponent({

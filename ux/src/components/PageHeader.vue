@@ -1,9 +1,22 @@
 <template lang="pug">
 .page-header-clean(v-if='!editorStore.isActive')
+  //- Breadcrumbs
+  .page-header-breadcrumbs(v-if='breadcrumbs.length > 1')
+    template(v-for='(crumb, idx) in breadcrumbs' :key='idx')
+      router-link.breadcrumb-link(v-if='idx < breadcrumbs.length - 1' :to='crumb.to') {{ crumb.label }}
+      span.breadcrumb-current(v-else) {{ crumb.label }}
+      q-icon.breadcrumb-sep(v-if='idx < breadcrumbs.length - 1' name='las la-angle-right' size='12px')
   .page-header-row
     .page-header-text
       h1.page-header-title {{ pageStore.title }}
       p.page-header-desc(v-if='pageStore.description') {{ pageStore.description }}
+      .page-header-meta
+        span.text-caption.text-grey-6(v-if='pageStore.updatedAt')
+          q-icon(name='las la-clock' size='14px')
+          |  {{ formatDate(pageStore.updatedAt) }}
+        span.text-caption.text-grey-6.q-ml-md(v-if='readingTime')
+          q-icon(name='las la-book-reader' size='14px')
+          |  {{ readingTime }} min de leitura
     .page-header-actions
       q-btn.page-header-print(
         flat
@@ -19,7 +32,7 @@
         flat
         no-caps
         icon='las la-language'
-        label='Translate'
+        label='Traduzir'
         color='grey-7'
         size='sm'
         style='border-radius: 8px; padding: 4px 14px;'
@@ -30,7 +43,7 @@
         flat
         no-caps
         icon='las la-lock'
-        label='Permissions'
+        label='Permissoes'
         color='grey-7'
         size='sm'
         style='border-radius: 8px; padding: 4px 14px;'
@@ -74,7 +87,7 @@
 
 <script setup>
 import { useQuasar } from 'quasar'
-import { computed, defineAsyncComponent, onMounted, reactive, ref, watch } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
@@ -83,6 +96,8 @@ import { useFlagsStore } from '@/stores/flags'
 import { usePageStore } from '@/stores/page'
 import { useSiteStore } from '@/stores/site'
 import { useUserStore } from '@/stores/user'
+
+import { DateTime } from 'luxon'
 
 const $q = useQuasar()
 const editorStore = useEditorStore()
@@ -93,6 +108,27 @@ const userStore = useUserStore()
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
+
+const breadcrumbs = computed(() => {
+  const path = pageStore.path || ''
+  if (!path) return []
+  const parts = path.split('/').filter(Boolean)
+  return parts.map((part, idx) => ({
+    label: part.charAt(0).toUpperCase() + part.slice(1).replace(/-/g, ' '),
+    to: '/' + parts.slice(0, idx + 1).join('/')
+  }))
+})
+
+const readingTime = computed(() => {
+  const text = (pageStore.render || pageStore.content || '').replace(/<[^>]+>/g, '')
+  const words = text.split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.ceil(words / 200))
+})
+
+function formatDate (iso) {
+  if (!iso) return ''
+  return DateTime.fromISO(iso).toRelative() || DateTime.fromISO(iso).toFormat('dd/MM/yyyy')
+}
 
 function openEditorSettings () { EVENT_BUS.emit('openEditorSettings') }
 
@@ -245,5 +281,34 @@ function openPermissionsDialog () {
   color: #64748B;
   margin: 4px 0 0 !important;
   line-height: 1.5;
+}
+
+.page-header-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.breadcrumb-link {
+  color: #006FEE;
+  text-decoration: none;
+  &:hover { text-decoration: underline; }
+}
+
+.breadcrumb-current {
+  color: #94A3B8;
+}
+
+.breadcrumb-sep {
+  color: #CBD5E1;
+}
+
+.page-header-meta {
+  display: flex;
+  align-items: center;
+  margin-top: 8px;
+  gap: 4px;
 }
 </style>

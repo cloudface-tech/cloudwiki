@@ -2,7 +2,7 @@
 .page-comments-panel
   .page-comments-header
     q-icon(name='las la-comments' size='24px' color='primary')
-    span.text-subtitle1.q-ml-sm Comments ({{ state.total }})
+    span.text-subtitle1.q-ml-sm Comentarios ({{ state.total }})
   q-separator.q-my-md
 
   //- Comment list
@@ -23,6 +23,7 @@
             @click='startReply(comment.id)'
           )
           q-btn(
+            v-if='userStore.authenticated'
             flat round dense
             icon='las la-trash-alt'
             size='sm'
@@ -41,6 +42,7 @@
             span.text-grey-6.q-ml-sm.text-caption {{ formatDate(reply.createdAt) }}
             q-space
             q-btn(
+              v-if='userStore.authenticated'
               flat round dense
               icon='las la-trash-alt'
               size='xs'
@@ -54,14 +56,14 @@
         q-input(
           v-model='state.replyText'
           outlined dense
-          placeholder='Write a reply... Use @name to mention'
+          placeholder='Escreva uma resposta... Use @nome para mencionar'
           @keyup.enter='submitReply(comment.id)'
         )
           template(v-slot:append)
             q-btn(flat dense icon='las la-paper-plane' color='primary' @click='submitReply(comment.id)')
 
   .text-grey-6.text-center.q-py-lg(v-else)
-    | No comments yet. Be the first to comment.
+    | Nenhum comentario ainda. Seja o primeiro a comentar.
 
   q-separator.q-my-md
 
@@ -70,7 +72,7 @@
     q-input(
       v-model='state.authorName'
       outlined dense
-      label='Your name'
+      label='Seu nome'
       class='q-mb-sm'
       v-if='!userStore.authenticated'
     )
@@ -79,14 +81,14 @@
       outlined
       type='textarea'
       :rows='3'
-      placeholder='Write a comment... Use @name to mention someone'
+      placeholder='Escreva um comentario... Use @nome para mencionar alguem'
       autogrow
     )
     .row.q-mt-sm.justify-end
       q-btn(
         unelevated
         color='primary'
-        label='Comment'
+        label='Comentar'
         no-caps
         icon='las la-comment'
         :loading='state.submitting'

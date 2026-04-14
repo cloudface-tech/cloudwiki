@@ -71,27 +71,31 @@
   }
 
   h1 {
-    font-size: 3em;
-    font-weight: 500;
-    padding: 12px 0;
-    // color: var(--q-primary);
+    font-size: 2em;
+    font-weight: 600;
+    padding: 8px 0;
   }
   h2 {
-    font-size: 2.4em;
-    padding: 12px 0;
+    font-size: 1.6em;
+    font-weight: 600;
+    padding: 8px 0;
   }
   h3 {
-    font-size: 2em;
-    padding: 12px 0;
+    font-size: 1.3em;
+    font-weight: 600;
+    padding: 6px 0;
   }
   h4 {
-    font-size: 1.75em;
+    font-size: 1.15em;
+    font-weight: 600;
   }
   h5 {
-    font-size: 1.5em;
+    font-size: 1.05em;
+    font-weight: 600;
   }
   h6 {
-    font-size: 1.25em;
+    font-size: 1em;
+    font-weight: 600;
   }
 
   * + h1 {
@@ -143,7 +147,7 @@
   blockquote {
     padding: 1em 1em .3em 1em;
     background-color: quasar.$blue-grey-1;
-    border-left: 55px solid quasar.$blue-grey-5;
+    border-left: 4px solid quasar.$blue-grey-5;
     border-radius: .5rem;
     margin: 1rem 0;
     position: relative;
@@ -153,14 +157,7 @@
     }
 
     &::before {
-      display: inline-block;
-      font: normal normal normal 24px/1 "Material Design Icons", sans-serif;
-      position: absolute;
-      margin-top: -12px;
-      top: 50%;
-      left: -38px;
-      color: rgba(255, 255, 255, .7);
-      content: "\F0757";
+      display: none;
     }
 
     > p:first-child .emoji {
