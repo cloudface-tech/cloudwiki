@@ -83,7 +83,20 @@
       :rows='3'
       placeholder='Escreva um comentario... Use @nome para mencionar alguem'
       autogrow
+      @keyup='checkMention'
     )
+      template(v-slot:append v-if='state.mentionResults.length')
+        q-menu(v-model='state.showMentions' no-parent-event)
+          q-list(dense)
+            q-item(
+              v-for='user in state.mentionResults'
+              :key='user.id'
+              clickable
+              @click='insertMention(user.name)'
+            )
+              q-item-section(avatar)
+                q-avatar(size='24px' color='primary' text-color='white') {{ user.name.charAt(0) }}
+              q-item-section {{ user.name }}
     q-checkbox.q-mt-sm(
       v-if='!userStore.authenticated'
       v-model='state.lgpdConsent'
@@ -122,7 +135,10 @@ const state = reactive({
   replyingTo: null,
   replyText: '',
   submitting: false,
-  lgpdConsent: false
+  lgpdConsent: false,
+  mentionResults: [],
+  showMentions: false,
+  cachedUsers: []
 })
 
 function formatDate (iso) {
@@ -207,6 +223,43 @@ async function deleteComment (id) {
     const resp = await fetch(`/api/mcp/comments/${id}`, { method: 'DELETE' })
     if (resp.ok) await fetchComments()
   } catch {}
+}
+
+async function fetchUsers () {
+  if (state.cachedUsers.length) return
+  try {
+    const resp = await fetch('/api/mcp/pages/' + pageStore.id + '/comments')
+    if (!resp.ok) return
+    const data = await resp.json()
+    const names = new Set()
+    for (const c of (data.comments || [])) {
+      names.add(c.authorName)
+      for (const r of (c.replies || [])) names.add(r.authorName)
+    }
+    state.cachedUsers = [...names].map((name, i) => ({ id: i, name }))
+  } catch {}
+}
+
+function checkMention (e) {
+  const text = state.newComment
+  const match = text.match(/@(\w*)$/)
+  if (match) {
+    const query = match[1].toLowerCase()
+    fetchUsers()
+    state.mentionResults = state.cachedUsers.filter(u =>
+      u.name.toLowerCase().includes(query)
+    ).slice(0, 5)
+    state.showMentions = state.mentionResults.length > 0
+  } else {
+    state.showMentions = false
+    state.mentionResults = []
+  }
+}
+
+function insertMention (name) {
+  state.newComment = state.newComment.replace(/@(\w*)$/, `@${name} `)
+  state.showMentions = false
+  state.mentionResults = []
 }
 
 onMounted(fetchComments)

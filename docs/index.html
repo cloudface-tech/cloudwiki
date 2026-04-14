@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CloudWiki — The Open-Source Knowledge Platform with AI</title>
+  <meta name="description" content="Open-source wiki with AI-powered search, real-time collaboration, MCP integration for AI agents, and markdown-native editing. Self-hosted or cloud.">
+  <meta name="keywords" content="wiki, knowledge base, open source, AI, MCP, markdown, collaboration, self-hosted">
+  <meta property="og:title" content="CloudWiki — Open-Source Knowledge Platform with AI">
+  <meta property="og:description" content="The only open-source wiki with built-in AI Q&A, MCP tools for AI agents, and markdown-native editing.">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #006FEE;
+      --primary-dark: #0050B3;
+      --accent: #39DDA2;
+      --dark: #0F172A;
+      --grey: #64748B;
+      --light: #F8FAFC;
+      --border: #E2E8F0;
+    }
+    body { font-family: 'Inter', -apple-system, sans-serif; color: var(--dark); line-height: 1.6; }
+    a { color: var(--primary); text-decoration: none; }
+
+    /* Nav */
+    .nav { display: flex; align-items: center; justify-content: space-between; max-width: 1200px; margin: 0 auto; padding: 16px 24px; }
+    .nav-logo { font-size: 1.3rem; font-weight: 800; color: var(--dark); }
+    .nav-logo span { color: var(--primary); }
+    .nav-links { display: flex; gap: 24px; align-items: center; }
+    .nav-links a { color: var(--grey); font-size: 0.9rem; font-weight: 500; }
+    .nav-links a:hover { color: var(--dark); }
+
+    /* Hero */
+    .hero { text-align: center; padding: 80px 24px 60px; max-width: 900px; margin: 0 auto; }
+    .hero-badge { display: inline-block; background: #EFF6FF; color: var(--primary); padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-bottom: 24px; }
+    .hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 20px; }
+    .hero h1 .gradient { background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .hero p { font-size: 1.2rem; color: var(--grey); max-width: 600px; margin: 0 auto 32px; }
+    .hero-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 8px; font-weight: 600; font-size: 0.95rem; transition: all 0.2s; border: none; cursor: pointer; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,111,238,0.3); }
+    .btn-outline { background: white; color: var(--dark); border: 1.5px solid var(--border); }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* Stats */
+    .stats { display: flex; justify-content: center; gap: 48px; padding: 40px 24px; flex-wrap: wrap; }
+    .stat { text-align: center; }
+    .stat-value { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .stat-label { font-size: 0.85rem; color: var(--grey); margin-top: 4px; }
+
+    /* Features */
+    .features { max-width: 1200px; margin: 0 auto; padding: 80px 24px; }
+    .features h2 { text-align: center; font-size: 2.2rem; font-weight: 700; margin-bottom: 12px; }
+    .features .subtitle { text-align: center; color: var(--grey); font-size: 1.1rem; margin-bottom: 48px; }
+    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+    .feature-card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 28px; transition: all 0.2s; }
+    .feature-card:hover { border-color: var(--primary); box-shadow: 0 4px 16px rgba(0,111,238,0.08); transform: translateY(-2px); }
+    .feature-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 16px; }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; }
+    .feature-card p { color: var(--grey); font-size: 0.9rem; line-height: 1.6; }
+    .fi-blue { background: #EFF6FF; color: var(--primary); }
+    .fi-green { background: #ECFDF5; color: #059669; }
+    .fi-purple { background: #F5F3FF; color: #7C3AED; }
+    .fi-orange { background: #FFF7ED; color: #EA580C; }
+    .fi-pink { background: #FDF2F8; color: #DB2777; }
+    .fi-teal { background: #F0FDFA; color: #0D9488; }
+
+    /* Comparison */
+    .comparison { background: var(--light); padding: 80px 24px; }
+    .comparison-inner { max-width: 900px; margin: 0 auto; }
+    .comparison h2 { text-align: center; font-size: 2rem; font-weight: 700; margin-bottom: 40px; }
+    .comparison table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .comparison th, .comparison td { padding: 14px 20px; text-align: center; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .comparison th { background: var(--dark); color: white; font-weight: 600; }
+    .comparison th:first-child, .comparison td:first-child { text-align: left; font-weight: 500; }
+    .check { color: var(--accent); font-weight: 700; }
+    .cross { color: #E2E8F0; }
+
+    /* CTA */
+    .cta { text-align: center; padding: 80px 24px; }
+    .cta h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 16px; }
+    .cta p { color: var(--grey); font-size: 1.1rem; margin-bottom: 32px; }
+
+    /* Footer */
+    .footer { border-top: 1px solid var(--border); padding: 32px 24px; text-align: center; color: var(--grey); font-size: 0.85rem; }
+    .footer a { color: var(--grey); }
+
+    /* Code */
+    .code-block { background: var(--dark); color: #E2E8F0; padding: 16px 24px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; margin: 32px auto; max-width: 700px; overflow-x: auto; text-align: left; }
+    .code-block .comment { color: #64748B; }
+    .code-block .cmd { color: var(--accent); }
+
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.2rem; }
+      .stats { gap: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .comparison { overflow-x: auto; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-logo">Cloud<span>Wiki</span></div>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#compare">Compare</a>
+      <a href="https://github.com/cloudface-tech/cloudwiki">GitHub</a>
+      <a href="https://github.com/cloudface-tech/cloudwiki" class="btn btn-primary" style="padding: 8px 20px; font-size: 0.85rem;">Get Started</a>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="hero-badge">Open Source &middot; Self-Hosted &middot; No SSO Tax</div>
+    <h1>Your team's knowledge,<br><span class="gradient">powered by AI</span></h1>
+    <p>The only open-source wiki with built-in AI search, MCP tools for AI agents, and a markdown-native editor. No vendor lock-in. No per-user surprise bills.</p>
+    <div class="hero-cta">
+      <a href="https://github.com/cloudface-tech/cloudwiki" class="btn btn-primary">Deploy Now</a>
+      <a href="https://wiki.dev.cultbr.cultura.gov.br" class="btn btn-outline">Live Demo</a>
+    </div>
+    <div class="code-block">
+      <span class="comment"># Deploy in 30 seconds</span><br>
+      <span class="cmd">docker compose up -d</span><br><br>
+      <span class="comment"># Or connect your AI agent</span><br>
+      <span class="cmd">npx @cloudwiki/mcp-server --url https://your-wiki.com</span>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="stat-value">13</div><div class="stat-label">MCP Tools</div></div>
+    <div class="stat"><div class="stat-value">1,046</div><div class="stat-label">Tests Passing</div></div>
+    <div class="stat"><div class="stat-value">20+</div><div class="stat-label">API Endpoints</div></div>
+    <div class="stat"><div class="stat-value">$0</div><div class="stat-label">SSO Tax</div></div>
+  </section>
+
+  <section class="features" id="features">
+    <h2>Everything you need. Nothing you don't.</h2>
+    <p class="subtitle">Built for teams that write docs, not fight their tools.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon fi-blue">&#x1F916;</div>
+        <h3>AI-Powered Search</h3>
+        <p>Ask questions about your knowledge base in natural language. Semantic search with embeddings finds answers, not just keywords.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-green">&#x1F4DD;</div>
+        <h3>Markdown-Native Editor</h3>
+        <p>Milkdown editor saves real Markdown — no HTML round-trip loss. Slash commands, source mode toggle, autosave, dark mode.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-purple">&#x1F517;</div>
+        <h3>MCP for AI Agents</h3>
+        <p>13 tools for Claude, Cursor, ChatGPT. Create, read, update, delete pages. Add comments. Set permissions. All via MCP.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-orange">&#x1F465;</div>
+        <h3>Real-Time Collaboration</h3>
+        <p>Multiple editors, same page, same time. Yjs CRDT with Hocuspocus server. See cursors and changes instantly.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-pink">&#x1F512;</div>
+        <h3>Granular Permissions</h3>
+        <p>Per-page access control. User or group. Read, write, admin. No more "everyone can edit everything" anxiety.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon fi-teal">&#x1F30D;</div>
+        <h3>Translation & i18n</h3>
+        <p>Create translated copies of any page. Multi-locale support. Templates for consistent structure across languages.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="comparison" id="compare">
+    <div class="comparison-inner">
+      <h2>CloudWiki vs. The Rest</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>CloudWiki</th>
+            <th>Outline</th>
+            <th>Notion</th>
+            <th>Confluence</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Open Source</td><td class="check">AGPL</td><td>BSL</td><td class="cross">No</td><td class="cross">No</td></tr>
+          <tr><td>Self-Hosted</td><td class="check">Yes</td><td class="check">Yes</td><td class="cross">No</td><td class="cross">EOL</td></tr>
+          <tr><td>AI Q&A Built-in</td><td class="check">Yes</td><td class="cross">No</td><td>$10/user</td><td>Add-on</td></tr>
+          <tr><td>MCP Server</td><td class="check">13 tools</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td></tr>
+          <tr><td>Markdown Native</td><td class="check">Yes</td><td class="check">Yes</td><td class="cross">Blocks</td><td class="cross">HTML</td></tr>
+          <tr><td>Real-Time Collab</td><td class="check">Yjs</td><td class="check">Yes</td><td class="check">Yes</td><td>Limited</td></tr>
+          <tr><td>SSO Included</td><td class="check">All plans</td><td>Team+</td><td>$20/user</td><td>Std+</td></tr>
+          <tr><td>Per-Page Permissions</td><td class="check">Yes</td><td class="cross">No</td><td>Business</td><td class="check">Yes</td></tr>
+          <tr><td>Threaded Comments</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td>Version History + Diff</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td><td class="check">Yes</td></tr>
+          <tr><td>Stale Content Detection</td><td class="check">AI</td><td class="cross">No</td><td class="cross">No</td><td class="cross">No</td></tr>
+          <tr><td>Price (10 users)</td><td><strong>Free</strong></td><td>$10/mo</td><td>$100/mo</td><td>$64/mo</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cta">
+    <h2>Ready to own your knowledge?</h2>
+    <p>Deploy in 30 seconds. No credit card. No vendor lock-in. Ever.</p>
+    <div class="hero-cta">
+      <a href="https://github.com/cloudface-tech/cloudwiki" class="btn btn-primary">View on GitHub</a>
+      <a href="https://github.com/cloudface-tech/cloudwiki/issues" class="btn btn-outline">Report an Issue</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>CloudWiki is open-source software by <a href="https://cloudface.tech">CloudFace</a>. Licensed under AGPL-2.0.</p>
+  </footer>
+</body>
+</html>

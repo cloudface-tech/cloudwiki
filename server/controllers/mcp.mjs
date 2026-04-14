@@ -1599,5 +1599,116 @@ export default function () {
     }
   })
 
+  // =========================================================================
+  // PUBLIC DOCS PORTAL
+  // =========================================================================
+
+  /**
+   * GET /api/mcp/docs/:path+
+   * Public read-only access to published pages (no auth required)
+   * Renders clean HTML or returns JSON with content
+   */
+  router.get('/docs/*', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const pagePath = req.params[0] || 'home'
+      const page = await WIKI.db.knex('pages')
+        .where({ path: pagePath, siteId: site.id, publishState: 'published' })
+        .select('id', 'path', 'title', 'description', 'content', 'render', 'locale', 'icon', 'tags', 'updatedAt')
+        .first()
+
+      if (!page) return res.status(404).json({ error: 'Page not found' })
+
+      const accept = req.headers.accept || ''
+
+      // Return JSON if requested
+      if (accept.includes('application/json')) {
+        const format = req.query.format || 'markdown'
+        const rawHtml = page.render || page.content || ''
+        let content
+        switch (format) {
+          case 'html': content = rawHtml; break
+          case 'plain': content = stripHtml(rawHtml); break
+          default: content = htmlToMarkdown(rawHtml); break
+        }
+        return res.json({ ...page, content, format })
+      }
+
+      // Return clean HTML page
+      const html = page.render || page.content || ''
+      res.type('html').send(`<!DOCTYPE html>
+<html lang="${page.locale || 'en'}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${page.title} — CloudWiki</title>
+  <meta name="description" content="${(page.description || '').replace(/"/g, '&quot;')}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; max-width: 860px; margin: 0 auto; padding: 32px 24px; color: #0F172A; line-height: 1.7; }
+    h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    h2 { font-size: 1.5rem; margin-top: 2em; }
+    h3 { font-size: 1.2rem; margin-top: 1.5em; }
+    a { color: #006FEE; }
+    code { background: #F1F5F9; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+    pre { background: #1E1E2E; color: #CDD6F4; padding: 16px; border-radius: 8px; overflow-x: auto; }
+    pre code { background: none; color: inherit; }
+    blockquote { border-left: 4px solid #006FEE; padding: 8px 16px; margin: 1em 0; background: #EFF6FF; border-radius: 0 8px 8px 0; }
+    table { border-collapse: collapse; width: 100%; margin: 1em 0; }
+    th, td { border: 1px solid #E2E8F0; padding: 8px 12px; text-align: left; }
+    th { background: #F8FAFC; font-weight: 600; }
+    img { max-width: 100%; border-radius: 8px; }
+    .meta { color: #64748B; font-size: 0.85rem; margin-bottom: 24px; }
+    .footer { margin-top: 48px; padding-top: 16px; border-top: 1px solid #E2E8F0; color: #94A3B8; font-size: 0.8rem; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>${page.title}</h1>
+  ${page.description ? `<p class="meta">${page.description} &middot; Updated ${new Date(page.updatedAt).toLocaleDateString()}</p>` : ''}
+  <div class="content">${html}</div>
+  <div class="footer">Powered by <a href="https://github.com/cloudface-tech/cloudwiki">CloudWiki</a></div>
+</body>
+</html>`)
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /docs/* failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * GET /api/mcp/docs-index
+   * List all published pages for public portal navigation
+   */
+  router.get('/docs-index', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const pages = await WIKI.db.knex('pages')
+        .where({ siteId: site.id, publishState: 'published' })
+        .select('id', 'path', 'title', 'description', 'locale', 'icon', 'tags', 'updatedAt')
+        .orderBy('path')
+
+      // Build tree structure
+      const tree = {}
+      for (const page of pages) {
+        const parts = page.path.split('/')
+        let node = tree
+        for (let i = 0; i < parts.length - 1; i++) {
+          if (!node[parts[i]]) node[parts[i]] = { _children: {} }
+          node = node[parts[i]]._children
+        }
+        node[parts[parts.length - 1]] = { ...page, _children: node[parts[parts.length - 1]]?._children || {} }
+      }
+
+      res.json({ pages, tree, total: pages.length })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /docs-index failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
   return router
 }
