@@ -32,7 +32,11 @@
 
   //- Milkdown WYSIWYG editor
   MilkdownProvider(v-show='!state.sourceMode')
-    Milkdown
+    editor-milkdown-inner(
+      :initial-content='initialContent'
+      @update='onEditorUpdate'
+      @editor-ready='onEditorReady'
+    )
 
   //- Source mode (raw markdown)
   q-input.milkdown-source(
@@ -79,19 +83,12 @@ import { DateTime } from 'luxon'
 import * as Y from 'yjs'
 import { HocuspocusProvider } from '@hocuspocus/provider'
 
-// Milkdown
-import { Editor, rootCtx, defaultValueCtx, editorViewCtx, serializerCtx, commandsCtx } from '@milkdown/core'
-import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/vue'
-import { commonmark, toggleStrongCommand, toggleEmphasisCommand, wrapInBlockquoteCommand, wrapInBulletListCommand, wrapInOrderedListCommand, insertHrCommand, insertImageCommand, createCodeBlockCommand, wrapInHeadingCommand } from '@milkdown/preset-commonmark'
-import { gfm, toggleStrikethroughCommand, insertTableCommand } from '@milkdown/preset-gfm'
-import { history } from '@milkdown/plugin-history'
-import { listener, listenerCtx } from '@milkdown/plugin-listener'
-import { clipboard } from '@milkdown/plugin-clipboard'
-import { indent } from '@milkdown/plugin-indent'
-import { trailing } from '@milkdown/plugin-trailing'
-import { cursor } from '@milkdown/plugin-cursor'
-import { upload } from '@milkdown/plugin-upload'
+import { MilkdownProvider } from '@milkdown/vue'
+import { commandsCtx, editorViewCtx, serializerCtx } from '@milkdown/core'
+import { toggleStrongCommand, toggleEmphasisCommand, wrapInBlockquoteCommand, wrapInBulletListCommand, wrapInOrderedListCommand, insertHrCommand, createCodeBlockCommand, wrapInHeadingCommand } from '@milkdown/preset-commonmark'
+import { toggleStrikethroughCommand, insertTableCommand } from '@milkdown/preset-gfm'
 
+import EditorMilkdownInner from './EditorMilkdownInner.vue'
 import { useEditorStore } from '@/stores/editor'
 import { usePageStore } from '@/stores/page'
 import { useSiteStore } from '@/stores/site'
@@ -262,44 +259,24 @@ function onSourceUpdate (val) {
   editorStore.$patch({ lastChangeTimestamp: DateTime.utc() })
 }
 
-// Initialize Milkdown editor
-const { loading, get: getEditor } = useEditor((root) => {
-  const initialContent = pageStore.content || pageStore.render || ''
+const initialContent = pageStore.content || pageStore.render || ''
 
-  const ed = Editor.make()
-    .config((ctx) => {
-      ctx.set(rootCtx, root)
-      ctx.set(defaultValueCtx, initialContent)
-
-      // Setup listener for markdown changes
-      const lm = ctx.get(listenerCtx)
-      lm.markdownUpdated((ctx, md, prevMd) => {
-        if (md === prevMd) return
-        state.markdown = md
-        state.wordCount = md.split(/\s+/).filter(Boolean).length
-        pageStore.$patch({
-          content: md,
-          render: ''
-        })
-        editorStore.$patch({
-          lastChangeTimestamp: DateTime.utc(),
-          hasPendingChanges: true
-        })
-      })
-    })
-    .use(commonmark)
-    .use(gfm)
-    .use(listener)
-    .use(history)
-    .use(clipboard)
-    .use(indent)
-    .use(trailing)
-    .use(cursor)
-    .use(upload)
-
+function onEditorReady (ed) {
   milkdownEditor = ed
-  return ed
-})
+}
+
+function onEditorUpdate (md) {
+  state.markdown = md
+  state.wordCount = md.split(/\s+/).filter(Boolean).length
+  pageStore.$patch({
+    content: md,
+    render: ''
+  })
+  editorStore.$patch({
+    lastChangeTimestamp: DateTime.utc(),
+    hasPendingChanges: true
+  })
+}
 
 // Autosave with debounce (30s)
 let autosaveTimer = null
