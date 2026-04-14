@@ -14,7 +14,6 @@ import { clipboard } from '@milkdown/plugin-clipboard'
 import { indent } from '@milkdown/plugin-indent'
 import { trailing } from '@milkdown/plugin-trailing'
 import { cursor } from '@milkdown/plugin-cursor'
-import { tooltip } from '@milkdown/plugin-tooltip'
 import { upload, uploadConfig } from '@milkdown/plugin-upload'
 
 const props = defineProps({
@@ -67,7 +66,6 @@ useEditor((root) => {
     .use(indent)
     .use(trailing)
     .use(cursor)
-    .use(tooltip)
     .use(upload)
 })
 
