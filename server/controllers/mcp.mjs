@@ -1,15 +1,6 @@
-import { createHash } from 'node:crypto'
 import express from 'express'
-import { marked } from 'marked'
 import TurndownService from 'turndown'
-import { v4 as uuidv4 } from 'uuid'
-
-/**
- * Generate page hash from path + locale (Wiki.js requirement)
- */
-function generatePageHash (path, locale) {
-  return createHash('sha256').update(`${locale}:${path}`).digest('hex')
-}
+import { generatePageHash, markdownToHtml, stripHtml, buildPageDefaults, uuidv4 } from '../services/page.mjs'
 
 const turndown = new TurndownService({
   headingStyle: 'atx',
@@ -17,12 +8,7 @@ const turndown = new TurndownService({
   bulletListMarker: '-'
 })
 
-/**
- * Strip HTML tags from content for plain-text AI consumption
- */
-function stripHtml (html) {
-  return (html || '').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim()
-}
+// stripHtml imported from services/page.mjs
 
 /**
  * Convert HTML to Markdown for structured AI consumption
@@ -36,13 +22,7 @@ function htmlToMarkdown (html) {
   }
 }
 
-/**
- * Convert Markdown to HTML for storage
- */
-function markdownToHtml (md) {
-  if (!md) return ''
-  return marked.parse(md, { async: false })
-}
+// markdownToHtml imported from services/page.mjs
 
 /**
  * API Key authentication middleware
@@ -117,6 +97,30 @@ async function ensureTables () {
 
   // pagePermissions table already exists in Wiki.js
 }
+
+/**
+ * Simple in-memory rate limiter
+ */
+function rateLimit (maxRequests, windowMs) {
+  const hits = new Map()
+  return (req, res, next) => {
+    const key = req.ip || 'unknown'
+    const now = Date.now()
+    const record = hits.get(key) || { count: 0, resetAt: now + windowMs }
+    if (now > record.resetAt) {
+      record.count = 0
+      record.resetAt = now + windowMs
+    }
+    record.count++
+    hits.set(key, record)
+    if (record.count > maxRequests) {
+      return res.status(429).json({ error: 'Too many requests. Try again later.' })
+    }
+    next()
+  }
+}
+
+const askRateLimit = rateLimit(20, 60000) // 20 req/min per IP
 
 export default function () {
   const router = express.Router()
@@ -772,18 +776,7 @@ export default function () {
         editor: pageEditor,
         contentType: pageEditor === 'markdown' ? 'markdown' : 'html',
         publishState: 'published',
-        config: {},
-        relations: [],
-        scripts: {},
-        historyData: {},
-        isBrowsable: true,
-        isSearchable: true,
-        ratingScore: 0,
-        ratingCount: 0,
-        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        creatorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        ownerId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        siteId: site.id,
+        ...buildPageDefaults(site.id),
         createdAt: now,
         updatedAt: now
       }
@@ -982,18 +975,7 @@ export default function () {
         editor: template.editor,
         contentType: template.contentType || 'html',
         publishState: 'published',
-        config: {},
-        relations: [],
-        scripts: {},
-        historyData: {},
-        isBrowsable: true,
-        isSearchable: true,
-        ratingScore: 0,
-        ratingCount: 0,
-        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        creatorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        ownerId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        siteId: site.id,
+        ...buildPageDefaults(site.id),
         createdAt: now,
         updatedAt: now
       }
@@ -1093,7 +1075,7 @@ export default function () {
         name: authorName,
         email: authorEmail || '',
         ip: req.ip || '0.0.0.0',
-        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
+        authorId: buildPageDefaults(site.id).authorId,
         createdAt: now,
         updatedAt: now
       }
@@ -1293,7 +1275,7 @@ export default function () {
    * Ask a question about wiki content — semantic search + context extraction
    * Body: { question, limit?, locale?, path? }
    */
-  router.post('/ask', express.json(), async (req, res) => {
+  router.post('/ask', askRateLimit, express.json(), async (req, res) => {
     try {
       const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
       if (!site) return res.status(404).json({ error: 'Site not found' })
@@ -1419,18 +1401,7 @@ export default function () {
         editor: sourcePage.editor,
         contentType: sourcePage.contentType || 'html',
         publishState: 'draft',
-        config: {},
-        relations: [],
-        scripts: {},
-        historyData: {},
-        isBrowsable: true,
-        isSearchable: true,
-        ratingScore: 0,
-        ratingCount: 0,
-        authorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        creatorId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        ownerId: WIKI.config?.api?.mcpDefaultAuthorId || '3431b098-9a8a-4e25-8ffb-2c95d5f60df4',
-        siteId: site.id,
+        ...buildPageDefaults(site.id),
         createdAt: now,
         updatedAt: now
       }
@@ -1450,6 +1421,180 @@ export default function () {
       })
     } catch (err) {
       WIKI.logger.warn(`MCP POST /translate failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // =========================================================================
+  // VERSION HISTORY
+  // =========================================================================
+
+  /**
+   * GET /api/mcp/pages/:pageId/history
+   * List version history for a page
+   */
+  router.get('/pages/:pageId/history', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20))
+
+      const versions = await WIKI.db.knex('pageHistory')
+        .where({ pageId: req.params.pageId, siteId: site.id })
+        .select('id', 'pageId', 'action', 'reason', 'title', 'description', 'path', 'editor', 'versionDate', 'createdAt', 'authorId')
+        .orderBy('versionDate', 'desc')
+        .limit(limit)
+
+      res.json({ versions, total: versions.length })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /pages/:pageId/history failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * GET /api/mcp/history/:id
+   * Get full content of a specific version
+   */
+  router.get('/history/:id', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const version = await WIKI.db.knex('pageHistory')
+        .where({ id: req.params.id, siteId: site.id })
+        .first()
+      if (!version) return res.status(404).json({ error: 'Version not found' })
+
+      const format = req.query.format || 'markdown'
+      const rawHtml = version.render || version.content || ''
+      let content
+      switch (format) {
+        case 'html': content = rawHtml; break
+        case 'plain': content = stripHtml(rawHtml); break
+        default: content = htmlToMarkdown(rawHtml); break
+      }
+
+      res.json({
+        id: version.id,
+        pageId: version.pageId,
+        action: version.action,
+        reason: version.reason,
+        title: version.title,
+        path: version.path,
+        content,
+        format,
+        versionDate: version.versionDate,
+        authorId: version.authorId
+      })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /history/:id failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  /**
+   * GET /api/mcp/pages/:pageId/diff?from=versionId&to=versionId
+   * Get diff between two versions (or version vs current)
+   */
+  router.get('/pages/:pageId/diff', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const fromId = req.query.from
+      if (!fromId) return res.status(400).json({ error: 'Query parameter "from" (version ID) is required.' })
+
+      const fromVersion = await WIKI.db.knex('pageHistory')
+        .where({ id: fromId, siteId: site.id })
+        .select('content', 'render', 'title', 'versionDate')
+        .first()
+      if (!fromVersion) return res.status(404).json({ error: 'From version not found' })
+
+      let toContent, toTitle, toDate
+      if (req.query.to) {
+        const toVersion = await WIKI.db.knex('pageHistory')
+          .where({ id: req.query.to, siteId: site.id })
+          .select('content', 'render', 'title', 'versionDate')
+          .first()
+        if (!toVersion) return res.status(404).json({ error: 'To version not found' })
+        toContent = stripHtml(toVersion.render || toVersion.content || '')
+        toTitle = toVersion.title
+        toDate = toVersion.versionDate
+      } else {
+        const current = await WIKI.db.knex('pages')
+          .where({ id: req.params.pageId, siteId: site.id })
+          .select('content', 'render', 'title', 'updatedAt')
+          .first()
+        if (!current) return res.status(404).json({ error: 'Current page not found' })
+        toContent = stripHtml(current.render || current.content || '')
+        toTitle = current.title
+        toDate = current.updatedAt
+      }
+
+      const fromContent = stripHtml(fromVersion.render || fromVersion.content || '')
+
+      // Simple line-by-line diff
+      const fromLines = fromContent.split('\n')
+      const toLines = toContent.split('\n')
+      const changes = []
+      const maxLen = Math.max(fromLines.length, toLines.length)
+      for (let i = 0; i < maxLen; i++) {
+        const fLine = fromLines[i] || ''
+        const tLine = toLines[i] || ''
+        if (fLine !== tLine) {
+          if (fLine && !tLine) changes.push({ type: 'removed', line: i + 1, content: fLine })
+          else if (!fLine && tLine) changes.push({ type: 'added', line: i + 1, content: tLine })
+          else changes.push({ type: 'changed', line: i + 1, from: fLine, to: tLine })
+        }
+      }
+
+      res.json({
+        pageId: req.params.pageId,
+        from: { id: fromId, title: fromVersion.title, date: fromVersion.versionDate },
+        to: { id: req.query.to || 'current', title: toTitle, date: toDate },
+        changes,
+        totalChanges: changes.length
+      })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /pages/:pageId/diff failed: ${err.message}`)
+      res.status(500).json({ error: 'Internal server error' })
+    }
+  })
+
+  // =========================================================================
+  // STALE CONTENT DETECTION
+  // =========================================================================
+
+  /**
+   * GET /api/mcp/stale
+   * Find pages not updated in N days (default 90)
+   */
+  router.get('/stale', async (req, res) => {
+    try {
+      const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
+      if (!site) return res.status(404).json({ error: 'Site not found' })
+
+      const days = Math.max(1, parseInt(req.query.days) || 90)
+      const limit = Math.min(100, Math.max(1, parseInt(req.query.limit) || 25))
+      const cutoff = new Date(Date.now() - days * 86400000).toISOString()
+
+      const pages = await WIKI.db.knex('pages')
+        .where({ siteId: site.id, publishState: 'published' })
+        .where('updatedAt', '<', cutoff)
+        .select('id', 'path', 'title', 'description', 'locale', 'updatedAt')
+        .orderBy('updatedAt', 'asc')
+        .limit(limit)
+
+      const stalePages = pages.map(p => ({
+        ...p,
+        daysSinceUpdate: Math.floor((Date.now() - new Date(p.updatedAt).getTime()) / 86400000)
+      }))
+
+      res.json({ pages: stalePages, total: stalePages.length, thresholdDays: days })
+    } catch (err) {
+      WIKI.logger.warn(`MCP GET /stale failed: ${err.message}`)
       res.status(500).json({ error: 'Internal server error' })
     }
   })

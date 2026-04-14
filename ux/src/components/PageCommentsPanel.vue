@@ -84,6 +84,13 @@
       placeholder='Escreva um comentario... Use @nome para mencionar alguem'
       autogrow
     )
+    q-checkbox.q-mt-sm(
+      v-if='!userStore.authenticated'
+      v-model='state.lgpdConsent'
+      label='Concordo com o armazenamento dos meus dados para fins de comentario (LGPD)'
+      dense
+      size='sm'
+    )
     .row.q-mt-sm.justify-end
       q-btn(
         unelevated
@@ -92,7 +99,7 @@
         no-caps
         icon='las la-comment'
         :loading='state.submitting'
-        :disable='!state.newComment.trim()'
+        :disable='!state.newComment.trim() || (!userStore.authenticated && !state.lgpdConsent)'
         @click='submitComment'
       )
 </template>
@@ -114,7 +121,8 @@ const state = reactive({
   authorName: '',
   replyingTo: null,
   replyText: '',
-  submitting: false
+  submitting: false,
+  lgpdConsent: false
 })
 
 function formatDate (iso) {
