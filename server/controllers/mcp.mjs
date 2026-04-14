@@ -275,6 +275,13 @@ export default function () {
         .update({ locale: 'pt' })
       results.push({ action: 'fix-locale-en-to-pt', updated: localeFixed })
 
+      // Also fix tree table locale
+      const treeFixed = await WIKI.db.knex('tree')
+        .where({ siteId: site.id, locale: 'en' })
+        .whereNot('fileName', 'home')
+        .update({ locale: 'pt' })
+      results.push({ action: 'fix-tree-locale', updated: treeFixed })
+
       // Fix double-slash paths
       const doubleSlash = await WIKI.db.knex('pages')
         .where({ siteId: site.id })
