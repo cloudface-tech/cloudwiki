@@ -1608,7 +1608,7 @@ export default function () {
    * Public read-only access to published pages (no auth required)
    * Renders clean HTML or returns JSON with content
    */
-  router.get('/docs/:path+', async (req, res) => {
+  router.get('/docs/:path', async (req, res) => {
     try {
       const site = await WIKI.db.sites.getSiteByHostname({ hostname: req.hostname })
       if (!site) return res.status(404).json({ error: 'Site not found' })
