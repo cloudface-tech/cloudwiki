@@ -267,10 +267,11 @@ export default function () {
 
       const results = []
 
-      // Fix locale: pages with PT content but locale='en'
+      // Fix locale: pages with PT content but locale='en' (skip home page)
       const localeFixed = await WIKI.db.knex('pages')
         .where({ siteId: site.id, locale: 'en' })
-        .whereRaw("(path ILIKE 'nees/%' OR path ILIKE 'minc/%' OR path ILIKE 'cultbr/%' OR title ~* '[\\xC0-\\xFF]')")
+        .whereNot('path', 'home')
+        .whereRaw("(path ILIKE 'nees/%' OR path ILIKE 'minc/%' OR path ILIKE 'cultbr/%' OR title ~* '[\\u00C0-\\u00FF]')")
         .update({ locale: 'pt' })
       results.push({ action: 'fix-locale-en-to-pt', updated: localeFixed })
 
