@@ -267,20 +267,9 @@ export default function () {
 
       const results = []
 
-      // Fix locale: pages with PT content but locale='en' (skip home page)
-      const localeFixed = await WIKI.db.knex('pages')
-        .where({ siteId: site.id, locale: 'en' })
-        .whereNot('path', 'home')
-        .whereRaw("(path ILIKE 'nees/%' OR path ILIKE 'minc/%' OR path ILIKE 'cultbr/%' OR title ~* '[\\u00C0-\\u00FF]')")
-        .update({ locale: 'pt' })
-      results.push({ action: 'fix-locale-en-to-pt', updated: localeFixed })
-
-      // Also fix tree table locale
-      const treeFixed = await WIKI.db.knex('tree')
-        .where({ siteId: site.id, locale: 'en' })
-        .whereNot('fileName', 'home')
-        .update({ locale: 'pt' })
-      results.push({ action: 'fix-tree-locale', updated: treeFixed })
+      // NOTE: locale migration removed — Wiki.js site config uses 'en' as primary,
+      // changing page/tree locales without also updating site config breaks routing.
+      // Locale changes should be done through the Wiki.js admin UI, not via migration.
 
       // Fix double-slash paths
       const doubleSlash = await WIKI.db.knex('pages')
