@@ -152,7 +152,7 @@
     "passport-slack-oauth2": "1.2.0",
     "passport-twitch-strategy": "2.2.0",
     "pem-jwk": "2.0.0",
-    "pg": "8.16.3",
+    "pg": "8.20.0",
     "pg-hstore": "2.3.4",
     "pg-pubsub": "0.8.1",
     "pg-query-stream": "4.14.0",
