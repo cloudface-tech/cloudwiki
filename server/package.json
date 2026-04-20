@@ -53,7 +53,7 @@
     "@root/csr": "0.8.1",
     "@root/keypairs": "0.10.3",
     "@root/pem": "1.0.4",
-    "@simplewebauthn/server": "13.1.2",
+    "@simplewebauthn/server": "13.3.0",
     "@vue-email/compiler": "0.8.14",
     "@xenova/transformers": "2.17.2",
     "acme": "3.0.3",
