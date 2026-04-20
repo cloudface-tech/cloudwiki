@@ -129,7 +129,7 @@
     "nanoid": "5.1.7",
     "node-2fa": "2.0.3",
     "node-cache": "5.1.2",
-    "nodemailer": "7.0.5",
+    "nodemailer": "7.0.13",
     "objection": "3.1.5",
     "octokit": "5.0.3",
     "pako": "2.1.0",
