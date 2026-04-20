@@ -128,7 +128,7 @@
     "eslint-plugin-vue": "10.3.0",
     "eslint-plugin-vue-pug": "1.0.0-alpha.3",
     "happy-dom": "20.8.9",
-    "neostandard": "0.12.2",
+    "neostandard": "0.13.0",
     "playwright": "1.59.1",
     "sass": "1.99.0",
     "vite-plugin-vue-devtools": "8.0.0",
